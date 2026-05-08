@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSDA Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f4;color:#1c1c1b;min-height:100vh}
+.app{max-width:900px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:8px}
+.header h1{font-size:18px;font-weight:500;display:flex;align-items:center;gap:8px}
+.config-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.config-row input{font-size:13px;padding:6px 10px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b;width:260px}
+.config-row button{font-size:13px;padding:6px 14px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b;cursor:pointer}
+.config-row button:hover{background:#f0ede8}
+.tabs{display:flex;gap:4px;margin-bottom:1rem;border-bottom:1px solid #e5e2dc}
+.tab{padding:8px 16px;font-size:14px;cursor:pointer;border:none;background:none;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:#1c1c1b;border-bottom:2px solid #1c1c1b;font-weight:500}
+.tab:hover:not(.active){color:#1c1c1b}
+.badge{display:inline-block;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:6px;background:#f0ede8;color:#888}
+.card{background:#fff;border:1px solid #e5e2dc;border-radius:12px;padding:1rem 1.25rem;margin-bottom:10px}
+.person-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.avatar{width:32px;height:32px;border-radius:50%;background:#e6f1fb;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#185fa5;flex-shrink:0}
+.person-name{font-weight:500;font-size:15px}
+.group-label{font-size:12px;color:#888;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.04em}
+.issue-item{font-size:13px;padding:4px 0;display:flex;align-items:baseline;gap:6px;border-bottom:1px solid #f0ede8}
+.issue-item:last-child{border-bottom:none}
+.issue-item a{color:#185fa5;text-decoration:none;flex:1}
+.issue-item a:hover{text-decoration:underline}
+.repo-chip{font-size:11px;color:#aaa;white-space:nowrap}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;margin:2px 3px 2px 0;background:#f0ede8;color:#888}
+.tag.gnxt{background:#e1f5ee;color:#0f6e56}
+.tag.gltr{background:#faeeda;color:#854f0b}
+.tag.gbug{background:#fcebeb;color:#a32d2d}
+.tag.gwtng{background:#e6f1fb;color:#185fa5}
+.bbl-title{font-weight:500;font-size:14px;margin-bottom:6px}
+.bbl-content{font-size:13px;color:#666;line-height:1.6}
+.bbl-meta{font-size:12px;color:#aaa;margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bbl-meta a{color:#aaa;text-decoration:none}
+.bbl-meta a:hover{text-decoration:underline}
+.filters{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.filter-btn{font-size:12px;padding:4px 12px;border:1px solid #d0cdc7;border-radius:10px;background:#fff;color:#888;cursor:pointer}
+.filter-btn.active{background:#1c1c1b;color:#fff;border-color:#1c1c1b}
+.empty{text-align:center;padding:2rem;color:#aaa;font-size:14px}
+.loading{text-align:center;padding:2rem;color:#888;font-size:14px}
+.error-box{background:#fcebeb;color:#a32d2d;padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:1rem;display:none}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.stat{background:#f0ede8;border-radius:8px;padding:12px 16px;text-align:center}
+.stat-num{font-size:24px;font-weight:500}
+.stat-label{font-size:12px;color:#888;margin-top:2px}
+.days-row{display:flex;align-items:center;gap:8px;margin-bottom:1rem}
+.days-row label{font-size:13px;color:#888}
+.days-row select{font-size:13px;padding:4px 8px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1><i class="ti ti-layout-dashboard"></i> OSDA Dashboard</h1>
+    <div class="config-row">
+      <input type="password" id="apikey" placeholder="api-key" value="" />
+      <input type="text" id="baseurl" placeholder="http://server:8000" value="http://5.189.137.174:8000" style="width:200px"/>
+      <button onclick="loadAll()"><i class="ti ti-refresh"></i> Yenile</button>
+    </div>
+  </div>
+
+  <div id="error-box" class="error-box"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('issues',this)">Issues <span class="badge" id="issues-count">—</span></button>
+    <button class="tab" onclick="switchTab('push',this)">Push Raporu <span class="badge" id="push-count">—</span></button>
+    <button class="tab" onclick="switchTab('bbl',this)">BBL'ler <span class="badge" id="bbl-count">—</span></button>
+  </div>
+
+  <div id="tab-issues">
+    <div class="days-row">
+      <label>Son</label>
+      <select id="issues-days" onchange="loadIssues()">
+        <option value="7">7 gün</option>
+        <option value="14" selected>14 gün</option>
+        <option value="30">30 gün</option>
+        <option value="60">60 gün</option>
+      </select>
+    </div>
+    <div class="stats" id="issues-stats" style="display:none">
+      <div class="stat"><div class="stat-num" id="s-completed">—</div><div class="stat-label">Tamamlanan</div></div>
+      <div class="stat"><div class="stat-num" id="s-created">—</div><div class="stat-label">Oluşturulan</div></div>
+      <div class="stat"><div class="stat-num" id="s-open">—</div><div class="stat-label">Açık</div></div>
+    </div>
+    <div id="issues-content"><div class="loading">Yükleniyor...</div></div>
+  </div>
+
+  <div id="tab-push" style="display:none">
+    <div class="days-row">
+      <label>Son</label>
+      <select id="push-days" onchange="loadPush()">
+        <option value="7" selected>7 gün</option>
+        <option value="14">14 gün</option>
+        <option value="30">30 gün</option>
+      </select>
+    </div>
+    <div id="push-content"><div class="loading">Yükleniyor...</div></div>
+  </div>
+
+  <div id="tab-bbl" style="display:none">
+    <div class="filters" id="bbl-filters">
+      <button class="filter-btn active" onclick="filterBbl(null,this)">Tümü</button>
+      <button class="filter-btn" onclick="filterBbl('#g/nxt',this)">#g/nxt</button>
+      <button class="filter-btn" onclick="filterBbl('#g/ltr',this)">#g/ltr</button>
+      <button class="filter-btn" onclick="filterBbl('#g/bug',this)">#g/bug</button>
+      <button class="filter-btn" onclick="filterBbl('#g/wtng',this)">#g/wtng</button>
+    </div>
+    <div id="bbl-content"><div class="loading">Yükleniyor...</div></div>
+  </div>
+</div>
+
+<script>
+let bblData=[];
+
+function base(){
+  return document.getElementById('baseurl').value.trim().replace(/\/$/,'')
+}
+
+function apiKey(){
+  return document.getElementById('apikey').value.trim()
+}
+
+function headers(){
+  return {'api-key': apiKey()}
+}
+
+function saveSettings(){
+  localStorage.setItem('osda_api_key', apiKey());
+  localStorage.setItem('osda_base_url', base());
+}
+
+function loadSettings(){
+  const savedKey = localStorage.getItem('osda_api_key');
+  const savedBase = localStorage.getItem('osda_base_url');
+
+  if(savedKey){
+    document.getElementById('apikey').value = savedKey;
+  }
+
+  if(savedBase){
+    document.getElementById('baseurl').value = savedBase;
+  }
+}
+
+function bindSettings(){
+  document.getElementById('apikey').addEventListener('input', saveSettings);
+  document.getElementById('baseurl').addEventListener('input', saveSettings);
+}
+
+function showError(msg){
+  const b=document.getElementById('error-box');
+  b.textContent=msg;
+  b.style.display='block';
+  setTimeout(()=>b.style.display='none',6000);
+}
+
+function switchTab(name,btn){
+  ['issues','push','bbl'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===name?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function initials(name){
+  return name.split(/[-_\s]/).slice(0,2).map(s=>s[0]||'').join('').toUpperCase()||'?';
+}
+
+function tagClass(t){
+  if(t.includes('g/nxt'))return'gnxt';
+  if(t.includes('g/ltr'))return'gltr';
+  if(t.includes('g/bug'))return'gbug';
+  if(t.includes('g/wtng'))return'gwtng';
+  return'';
+}
+
+async function loadIssues(){
+  saveSettings();
+
+  const days=document.getElementById('issues-days').value;
+  const el=document.getElementById('issues-content');
+  el.innerHTML='<div class="loading">Yükleniyor...</div>';
+
+  try{
+    const r=await fetch(`${base()}/issues.json?days=${days}`,{headers:headers()});
+    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    const d=await r.json();
+    renderIssues(d);
+  }catch(e){
+    showError('Issues yüklenemedi: '+e.message);
+    el.innerHTML='<div class="empty">Yüklenemedi</div>';
+  }
+}
+
+function renderIssues(d){
+  const report=d.report||[];
+  let completed=0,created=0,open=0;
+
+  report.forEach(p=>{
+    completed+=p.completed.length;
+    created+=p.created.length;
+    open+=p.open.length;
+  });
+
+  document.getElementById('s-completed').textContent=completed;
+  document.getElementById('s-created').textContent=created;
+  document.getElementById('s-open').textContent=open;
+  document.getElementById('issues-stats').style.display='grid';
+  document.getElementById('issues-count').textContent=report.length;
+
+  if(!report.length){
+    document.getElementById('issues-content').innerHTML='<div class="empty">Sonuç yok</div>';
+    return;
+  }
+
+  document.getElementById('issues-content').innerHTML=report.map(p=>{
+    const groups=['completed','created','open'].filter(g=>p[g]&&p[g].length>0);
+    const groupLabels={completed:'Tamamlanan',created:'Oluşturulan',open:'Açık'};
+
+    return`<div class="card">
+      <div class="person-header">
+        <div class="avatar">${initials(p.assignee)}</div>
+        <div class="person-name">${p.assignee}</div>
+      </div>
+      ${groups.map(g=>`
+        <div class="group-label">${groupLabels[g]} (${p[g].length})</div>
+        ${p[g].slice(0,10).map(i=>`
+          <div class="issue-item">
+            <a href="${i.url}" target="_blank">${i.title}</a>
+            <span class="repo-chip">${i.repo.replace('collabryio/','')}</span>
+          </div>`).join('')}
+        ${p[g].length>10?`<div style="font-size:12px;color:#aaa;padding:4px 0">+${p[g].length-10} daha</div>`:''}`).join('')}
+    </div>`;
+  }).join('');
+}
+
+async function loadPush(){
+  saveSettings();
+
+  const days=document.getElementById('push-days').value;
+  const el=document.getElementById('push-content');
+  el.innerHTML='<div class="loading">Yükleniyor...</div>';
+
+  try{
+    const r=await fetch(`${base()}/report.json?days=${days}`,{headers:headers()});
+    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    const d=await r.json();
+    renderPush(d);
+  }catch(e){
+    showError('Push raporu yüklenemedi: '+e.message);
+    el.innerHTML='<div class="empty">Yüklenemedi</div>';
+  }
+}
+
+function renderPush(d){
+  const report=d.report||[];
+  document.getElementById('push-count').textContent=report.length;
+
+  if(!report.length){
+    document.getElementById('push-content').innerHTML='<div class="empty">Sonuç yok</div>';
+    return;
+  }
+
+  document.getElementById('push-content').innerHTML=report.map(p=>`
+    <div class="card">
+      <div class="person-header">
+        <div class="avatar">${initials(p.author)}</div>
+        <div class="person-name">${p.author}</div>
+      </div>
+      ${p.files.slice(0,15).map(f=>`
+        <div class="issue-item">
+          <span style="flex:1;font-size:13px">${f.filename.split('/').pop()}</span>
+          <span class="repo-chip">${f.filename.split('/').slice(0,-1).join('/').replace('collabryio/','')}</span>
+        </div>`).join('')}
+      ${p.files.length>15?`<div style="font-size:12px;color:#aaa;padding:4px 0">+${p.files.length-15} daha</div>`:''}
+    </div>`).join('');
+}
+
+async function loadBbl(){
+  saveSettings();
+
+  const el=document.getElementById('bbl-content');
+  el.innerHTML='<div class="loading">Yükleniyor...</div>';
+
+  try{
+    const r=await fetch(`${base()}/bbl.json`,{headers:headers()});
+    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    const d=await r.json();
+    bblData=d.bbls||[];
+    document.getElementById('bbl-count').textContent=bblData.length;
+    renderBbl(bblData);
+  }catch(e){
+    showError('BBL yüklenemedi: '+e.message);
+    el.innerHTML='<div class="empty">Yüklenemedi</div>';
+  }
+}
+
+function filterBbl(tag,btn){
+  document.querySelectorAll('#bbl-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBbl(tag?bblData.filter(b=>b.tags&&b.tags.includes(tag)):bblData);
+}
+
+function renderBbl(bbls){
+  const el=document.getElementById('bbl-content');
+
+  if(!bbls.length){
+    el.innerHTML='<div class="empty">Sonuç yok</div>';
+    return;
+  }
+
+  el.innerHTML=bbls.map(b=>{
+    const tags=(b.tags||[]).map(t=>`<span class="tag ${tagClass(t)}">${t}</span>`).join('');
+    const content=(b.content||[]).slice(0,4).map(c=>`<div>${c}</div>`).join('');
+    const repoUrl=b.repo&&b.file_path?`https://github.com/${b.repo}/blob/main/${b.file_path}`:'';
+
+    return`<div class="card">
+      <div class="bbl-title">${b.title||'—'}</div>
+      ${content?`<div class="bbl-content">${content}</div>`:''}
+      <div class="bbl-meta">
+        ${tags}
+        ${b.date?`<span>${b.date}</span>`:''}
+        ${repoUrl?`<a href="${repoUrl}" target="_blank"><i class="ti ti-external-link" style="font-size:12px"></i> ${b.file_path?b.file_path.split('/').pop():''}</a>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function loadAll(){
+  loadIssues();
+  loadPush();
+  loadBbl();
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  loadSettings();
+  bindSettings();
+  loadAll();
+});
+</script>
+</body>
+</html>
