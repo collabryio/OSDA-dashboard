@@ -107,10 +107,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f4;color:#1c
   <div id="tab-bbl" style="display:none">
     <div class="filters" id="bbl-filters">
       <button class="filter-btn active" onclick="filterBbl(null,this)">Tümü</button>
-      <button class="filter-btn" onclick="filterBbl('#g/nxt',this)">#g/nxt</button>
-      <button class="filter-btn" onclick="filterBbl('#g/ltr',this)">#g/ltr</button>
-      <button class="filter-btn" onclick="filterBbl('#g/bug',this)">#g/bug</button>
-      <button class="filter-btn" onclick="filterBbl('#g/wtng',this)">#g/wtng</button>
+      <div id="tag-filter-btns"></div>
     </div>
     <div id="bbl-content"><div class="loading">Yükleniyor...</div></div>
   </div>
@@ -283,7 +280,26 @@ function renderPush(d){
     </div>`).join('');
 }
 
-async function loadBbl(){
+async function loadTags(){
+  try{
+    const r=await fetch(`${base()}/tags.json`,{headers:headers()});
+    if(!r.ok) throw new Error();
+    const d=await r.json();
+    const gtd=d.gtd||[];
+    const labels=d.labels||{};
+    const el=document.getElementById('tag-filter-btns');
+    el.innerHTML=gtd.map(t=>`<button class="filter-btn" onclick="filterBbl('#${t}',this)">#${t}</button>`).join('');
+  }catch(e){
+    // tags.json yoksa varsayılan
+    document.getElementById('tag-filter-btns').innerHTML=
+      `<button class="filter-btn" onclick="filterBbl('#g/nxt',this)">#g/nxt</button>
+       <button class="filter-btn" onclick="filterBbl('#g/ltr',this)">#g/ltr</button>
+       <button class="filter-btn" onclick="filterBbl('#g/bug',this)">#g/bug</button>
+       <button class="filter-btn" onclick="filterBbl('#g/wtng',this)">#g/wtng</button>`;
+  }
+}
+
+
   saveSettings();
 
   const el=document.getElementById('bbl-content');
@@ -333,12 +349,7 @@ function renderBbl(bbls){
   }).join('');
 }
 
-function loadAll(){
-  loadIssues();
-  loadPush();
-  loadBbl();
-}
-
+function loadAll(){loadTags();loadIssues();loadPush();loadBbl();}
 window.addEventListener('DOMContentLoaded',()=>{
   loadSettings();
   bindSettings();
