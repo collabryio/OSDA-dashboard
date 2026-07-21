@@ -72,6 +72,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f4;color:#1c
     <button class="tab active" onclick="switchTab('issues',this)">Issues <span class="badge" id="issues-count">—</span></button>
     <button class="tab" onclick="switchTab('push',this)">Push Raporu <span class="badge" id="push-count">—</span></button>
     <button class="tab" onclick="switchTab('bbl',this)">BBL'ler <span class="badge" id="bbl-count">—</span></button>
+    <button class="tab" onclick="switchTab('backlink',this)">Backlink <span class="badge" id="backlink-count">—</span></button>
   </div>
 
   <div id="tab-issues">
@@ -110,6 +111,21 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f4;color:#1c
       <div id="tag-filter-btns"></div>
     </div>
     <div id="bbl-content"><div class="loading">Yükleniyor...</div></div>
+  </div>
+
+  <div id="tab-backlink" style="display:none">
+    <div class="days-row">
+      <input type="text" id="bl-api" placeholder="Backlink API" value="https://osda-backlink.collabry.io"
+             style="flex:1;min-width:220px;font-size:13px;padding:6px 10px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b"/>
+      <input type="password" id="bl-key" placeholder="backlink api-key"
+             style="width:180px;font-size:13px;padding:6px 10px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b"/>
+    </div>
+    <div class="days-row">
+      <input type="text" id="bl-q" placeholder="Ara: metin veya refid (uuid)…"
+             style="flex:1;font-size:13px;padding:6px 10px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b"/>
+      <button class="filter-btn" onclick="blSearch()">Ara</button>
+    </div>
+    <div id="backlink-content"><div class="empty">Aramaya başla — bir sonuca tıkla, backlink'leri gör.</div></div>
   </div>
 </div>
 
@@ -159,8 +175,9 @@ function showError(msg){
 }
 
 function switchTab(name,btn){
-  ['issues','push','bbl'].forEach(t=>{
-    document.getElementById('tab-'+t).style.display=t===name?'block':'none';
+  ['issues','push','bbl','backlink'].forEach(t=>{
+    const el=document.getElementById('tab-'+t);
+    if(el) el.style.display=t===name?'block':'none';
   });
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
@@ -355,6 +372,69 @@ window.addEventListener('DOMContentLoaded',()=>{
   bindSettings();
   loadAll();
 });
+
+// ===================== BACKLINK sekmesi =====================
+(function(){
+  var esc=function(s){return (s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});};
+  var blApiEl=function(){return document.getElementById('bl-api');};
+  var blKeyEl=function(){return document.getElementById('bl-key');};
+  window.blBase=function(){return (blApiEl().value||'').trim().replace(/\/$/,'');};
+  // Backlink kendi anahtarını kullanır; boşsa üstteki genel api-key'e düşer.
+  var hdr=function(){
+    var k=((blKeyEl()&&blKeyEl().value)||'').trim() || (document.getElementById('apikey').value||'').trim();
+    return {'api-key':k};
+  };
+
+  // Backlink API adresini ve anahtarını hatırla
+  window.addEventListener('DOMContentLoaded',function(){
+    var savedApi=localStorage.getItem('osda_bl_api');
+    var savedKey=localStorage.getItem('osda_bl_key');
+    if(savedApi&&blApiEl()) blApiEl().value=savedApi;
+    if(savedKey&&blKeyEl()) blKeyEl().value=savedKey;
+  });
+  document.addEventListener('input',function(e){
+    if(e.target&&e.target.id==='bl-api') localStorage.setItem('osda_bl_api', window.blBase());
+    if(e.target&&e.target.id==='bl-key') localStorage.setItem('osda_bl_key', (e.target.value||'').trim());
+  });
+
+  window.blSearch=async function(){
+    var q=(document.getElementById('bl-q').value||'').trim(); if(!q) return;
+    var el=document.getElementById('backlink-content'); el.innerHTML='<div class="loading">Yükleniyor...</div>';
+    if(!window.blBase()){ el.innerHTML='<div class="empty">Önce Backlink API adresini gir.</div>'; return; }
+    try{
+      var r=await fetch(window.blBase()+'/search?q='+encodeURIComponent(q)+'&limit=50',{headers:hdr()});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      var rows=await r.json();
+      document.getElementById('backlink-count').textContent=rows.length;
+      window._blRows=rows;
+      if(!rows.length){ el.innerHTML='<div class="empty">Sonuç yok</div>'; return; }
+      el.innerHTML=rows.map(function(h,i){return '<div class="card">'+
+        '<div class="bbl-title">'+(esc(h.text)||'—')+'</div>'+
+        '<div class="bbl-meta"><span>'+esc(h.graph)+'/'+esc(h.file)+':'+h.line+'</span>'+
+        ' <a href="#" onclick="blShow('+i+');return false">↩ backlink\'leri gör</a>'+
+        ' <a href="'+window.blBase()+'/" target="_blank">okuyucuda aç</a></div>'+
+        '<div id="bl-bk-'+i+'"></div></div>';}).join('');
+    }catch(e){ el.innerHTML='<div class="empty">Yüklenemedi: '+e.message+'</div>'; }
+  };
+
+  window.blShow=async function(i){
+    var h=window._blRows[i]; var box=document.getElementById('bl-bk-'+i);
+    box.innerHTML='<div class="loading">…</div>';
+    try{
+      var url = h.refid
+        ? window.blBase()+'/backlinks/'+encodeURIComponent(h.refid)
+        : window.blBase()+'/page/backlinks?key='+encodeURIComponent(h.graph+'/'+h.page);
+      var r=await fetch(url,{headers:hdr()}); var d=await r.json();
+      var items=d.backlinks||[];
+      if(!items.length){ box.innerHTML='<div class="group-label">bu bloğa/sayfaya backlink yok</div>'; return; }
+      box.innerHTML='<div class="group-label">↩ '+items.length+' backlink</div>'+items.map(function(b){
+        return '<div class="issue-item"><span class="tag">'+esc(b.kind)+'</span>'+
+          '<span style="flex:1">'+(esc(b.text)||'—')+'</span>'+
+          '<span class="repo-chip">'+esc(b.source_graph)+'/'+esc(b.source_file)+':'+b.line+'</span></div>';
+      }).join('');
+    }catch(e){ box.innerHTML='<div class="empty">hata: '+e.message+'</div>'; }
+  };
+})();
 </script>
 </body>
 </html>
