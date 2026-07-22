@@ -53,6 +53,59 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f4;color:#1c
 .days-row{display:flex;align-items:center;gap:8px;margin-bottom:1rem}
 .days-row label{font-size:13px;color:#888}
 .days-row select{font-size:13px;padding:4px 8px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b}
+
+/* Backlink okuyucu (sekme içi) */
+.app.app-wide{max-width:none}
+.bl-reader{--bl-bg:#0f1115;--bl-fg:#e6e6e6;--bl-mut:#8b93a1;--bl-acc:#5aa9ff;--bl-card:#171a21;--bl-bd:#252a34;--bl-hl:#2a3345;
+  background:var(--bl-bg);color:var(--bl-fg);border:1px solid var(--bl-bd);border-radius:12px;overflow:hidden;
+  display:flex;flex-direction:column;height:calc(100vh - 140px);min-height:520px;font:14px/1.55 system-ui,-apple-system,sans-serif}
+.bl-reader .bl-top{padding:10px 14px;border-bottom:1px solid var(--bl-bd);display:flex;align-items:center;gap:12px;flex:0 0 auto}
+.bl-reader .bl-top h2{margin:0;font-size:15px;font-weight:500}
+.bl-reader .bl-top h2 span{color:var(--bl-acc)}
+.bl-reader .bl-stat{color:var(--bl-mut);font-size:12px;margin-left:auto}
+.bl-reader .bl-main{flex:1;display:flex;min-height:0}
+.bl-reader .bl-side{width:320px;flex:0 0 320px;border-right:1px solid var(--bl-bd);display:flex;flex-direction:column;min-height:0}
+.bl-reader .bl-search{padding:10px;border-bottom:1px solid var(--bl-bd)}
+.bl-reader .bl-search .row{display:flex;gap:6px}
+.bl-reader .bl-search input{flex:1;min-width:0;padding:8px 10px;border-radius:7px;border:1px solid var(--bl-bd);background:var(--bl-card);color:var(--bl-fg);font:inherit}
+.bl-reader .bl-search button{padding:8px 12px;border-radius:7px;border:none;background:var(--bl-acc);color:#04122b;font-weight:600;cursor:pointer}
+.bl-reader .bl-hint{color:var(--bl-mut);font-size:11px;margin-top:6px}
+.bl-reader .bl-results{overflow-y:auto;flex:1}
+.bl-reader .bl-res{padding:9px 12px;border-bottom:1px solid var(--bl-bd);cursor:pointer}
+.bl-reader .bl-res:hover{background:var(--bl-card)}
+.bl-reader .bl-res .t{margin:0}
+.bl-reader .bl-res .m{color:var(--bl-mut);font-size:11px;margin-top:3px;word-break:break-all}
+.bl-reader .bl-view{flex:1;display:flex;flex-direction:column;min-height:0}
+.bl-reader .bl-bar{padding:8px 14px;border-bottom:1px solid var(--bl-bd);display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.bl-reader .bl-bar .path{color:var(--bl-mut);font-size:12px;word-break:break-all}
+.bl-reader .bl-bar button{background:var(--bl-card);color:var(--bl-fg);border:1px solid var(--bl-bd);padding:5px 10px;font-size:12px;border-radius:6px;cursor:pointer}
+.bl-reader .bl-bar button:disabled{opacity:.4;cursor:default}
+.bl-reader .bl-blinks{border-bottom:1px solid var(--bl-bd);max-height:34%;overflow-y:auto;flex:0 0 auto}
+.bl-reader .bl-bhead{padding:8px 14px;color:var(--bl-mut);font-size:12px;position:sticky;top:0;background:var(--bl-bg);border-bottom:1px solid var(--bl-bd)}
+.bl-reader .bl-bitem{padding:7px 14px;border-bottom:1px solid var(--bl-bd);cursor:pointer}
+.bl-reader .bl-bitem:hover{background:var(--bl-card)}
+.bl-reader .bl-bitem .m{color:var(--bl-mut);font-size:11px;margin-top:2px;word-break:break-all}
+.bl-reader .bl-doc{overflow-y:auto;flex:1;padding:14px 18px}
+.bl-reader .ln{white-space:pre-wrap;word-break:break-word;padding:1px 0}
+.bl-reader .ln.h1{font-size:19px;font-weight:700;margin-top:6px}
+.bl-reader .ln.h2{font-size:16px;font-weight:700;color:#cfe3ff;margin-top:4px}
+.bl-reader .ln.h3{font-size:14px;font-weight:700;color:#b9c6d8}
+.bl-reader .ln.prop{color:var(--bl-mut);font-size:12px}
+.bl-reader .ln.bullet::before{content:"• ";color:var(--bl-mut)}
+.bl-reader .ln.focus{background:var(--bl-hl);border-radius:6px}
+.bl-reader .bl-badge{display:inline-block;font-size:10px;padding:0 6px;border-radius:20px;background:#22303f;color:var(--bl-acc);margin-right:6px;vertical-align:1px}
+.bl-reader .bl-badge.rbl{background:#2f2436;color:#d69bff}
+.bl-reader .bl-badge.blockref{background:#22303f;color:#5aa9ff}
+.bl-reader .bl-badge.wikilink{background:#243626;color:#7ad67a}
+.bl-reader .bl-badge.tag{background:#3a3320;color:#e6c65a}
+.bl-reader a.ref{cursor:pointer;text-decoration:none;border-bottom:1px dashed}
+.bl-reader a.ref.block{color:#5aa9ff}
+.bl-reader a.ref.page{color:#7ad67a}
+.bl-reader .bl-empty{color:var(--bl-mut);padding:24px;text-align:center}
+@media(max-width:800px){
+  .bl-reader .bl-main{flex-direction:column}
+  .bl-reader .bl-side{width:100%;flex:0 0 40%;border-right:none;border-bottom:1px solid var(--bl-bd)}
+}
 </style>
 </head>
 <body>
@@ -114,16 +167,32 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f4;color:#1c
   </div>
 
   <div id="tab-backlink" style="display:none">
-    <div class="days-row">
-      <input type="text" id="bl-api" placeholder="Backlink API" value="https://osda-api.collabry.io/backlink"
-             style="flex:1;min-width:220px;font-size:13px;padding:6px 10px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b"/>
+    <div class="bl-reader">
+      <div class="bl-top">
+        <h2>OSDA <span>Backlink</span></h2>
+        <span class="bl-stat" id="bl-stat"></span>
+      </div>
+      <div class="bl-main">
+        <div class="bl-side">
+          <div class="bl-search">
+            <div class="row">
+              <input id="bl-q" placeholder="Ara: metin veya refid…" />
+              <button type="button" onclick="blDoSearch()">Ara</button>
+            </div>
+            <div class="bl-hint">Sonuca tıkla → dokümanı aç, linkler arası gez.</div>
+          </div>
+          <div id="bl-results" class="bl-results"><div class="bl-empty">Aramaya başla</div></div>
+        </div>
+        <div class="bl-view">
+          <div class="bl-bar">
+            <button type="button" id="bl-back" onclick="blGoBack()" disabled>← Geri</button>
+            <span id="bl-path" class="path">Doküman seçilmedi</span>
+          </div>
+          <div id="bl-blinks" class="bl-blinks" style="display:none"></div>
+          <div id="bl-doc" class="bl-doc"><div class="bl-empty">Soldan bir sonuç seç ya da ara.</div></div>
+        </div>
+      </div>
     </div>
-    <div class="days-row">
-      <input type="text" id="bl-q" placeholder="Ara: metin veya refid (uuid)…"
-             style="flex:1;font-size:13px;padding:6px 10px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b"/>
-      <button class="filter-btn" onclick="blSearch()">Ara</button>
-    </div>
-    <div id="backlink-content"><div class="empty">Aramaya başla — bir sonuca tıkla, backlink'leri gör.</div></div>
   </div>
 </div>
 
@@ -179,6 +248,8 @@ function switchTab(name,btn){
   });
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  document.querySelector('.app').classList.toggle('app-wide', name==='backlink');
+  if(name==='backlink') blLoadStats();
 }
 
 function initials(name){
@@ -371,60 +442,167 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadAll();
 });
 
-// ===================== BACKLINK sekmesi =====================
+// ===================== BACKLINK okuyucu (dashboard içi) =====================
 (function(){
   var esc=function(s){return (s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});};
-  var blApiEl=function(){return document.getElementById('bl-api');};
-  window.blBase=function(){return (blApiEl().value||'').trim().replace(/\/$/,'');};
-  // Üstteki genel api-key kutusu kullanılır (osda-api ile aynı anahtar).
-  var hdr=function(){return {'api-key':(document.getElementById('apikey').value||'').trim()};};
+  var history_=[];
+  var current=null;
 
-  // Backlink API adresini hatırla
-  window.addEventListener('DOMContentLoaded',function(){
-    var savedApi=localStorage.getItem('osda_bl_api');
-    if(savedApi&&blApiEl()) blApiEl().value=savedApi;
-  });
-  document.addEventListener('input',function(e){
-    if(e.target&&e.target.id==='bl-api') localStorage.setItem('osda_bl_api', window.blBase());
-  });
+  function blApi(){ return base().replace(/\/$/,'') + '/backlink'; }
+  function blHdr(){ return {'api-key': apiKey()}; }
 
-  window.blSearch=async function(){
+  async function jget(url){
+    var r=await fetch(blApi()+url,{headers:blHdr()});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }
+
+  function pageKeyFromFile(graph,file){
+    var stem=file.split('/').pop().replace(/\.md$/,'');
+    stem=stem.replace(/___/g,'/').replace(/^#\s*/,'').trim();
+    return graph+'/'+stem;
+  }
+  function indentLevel(ws){
+    var t=(ws.match(/\t/g)||[]).length;
+    return t+Math.floor((ws.length-t)/2);
+  }
+
+  window.blLoadStats=async function(){
+    try{
+      var s=await jget('/stats');
+      document.getElementById('bl-stat').textContent=
+        (s.blocks||0).toLocaleString()+' blok · '+(s.edges||0).toLocaleString()+' link';
+      document.getElementById('backlink-count').textContent=(s.targets||s.blocks||'—');
+    }catch(e){
+      document.getElementById('bl-stat').textContent='API bağlanamadı';
+    }
+  };
+
+  window.blDoSearch=async function(){
     var q=(document.getElementById('bl-q').value||'').trim(); if(!q) return;
-    var el=document.getElementById('backlink-content'); el.innerHTML='<div class="loading">Yükleniyor...</div>';
-    if(!window.blBase()){ el.innerHTML='<div class="empty">Önce Backlink API adresini gir.</div>'; return; }
+    var box=document.getElementById('bl-results');
+    box.innerHTML='<div class="bl-empty">…</div>';
     try{
-      var r=await fetch(window.blBase()+'/search?q='+encodeURIComponent(q)+'&limit=50',{headers:hdr()});
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      var rows=await r.json();
+      var rows=await jget('/search?q='+encodeURIComponent(q)+'&limit=50');
+      box.innerHTML='';
+      if(!rows.length){ box.innerHTML='<div class="bl-empty">sonuç yok</div>'; return; }
       document.getElementById('backlink-count').textContent=rows.length;
-      window._blRows=rows;
-      if(!rows.length){ el.innerHTML='<div class="empty">Sonuç yok</div>'; return; }
-      el.innerHTML=rows.map(function(h,i){return '<div class="card">'+
-        '<div class="bbl-title">'+(esc(h.text)||'—')+'</div>'+
-        '<div class="bbl-meta"><span>'+esc(h.graph)+'/'+esc(h.file)+':'+h.line+'</span>'+
-        ' <a href="#" onclick="blShow('+i+');return false">↩ backlink\'leri gör</a>'+
-        ' <a href="'+window.blBase()+'/" target="_blank">okuyucuda aç</a></div>'+
-        '<div id="bl-bk-'+i+'"></div></div>';}).join('');
-    }catch(e){ el.innerHTML='<div class="empty">Yüklenemedi: '+e.message+'</div>'; }
+      rows.forEach(function(h){
+        var el=document.createElement('div'); el.className='bl-res';
+        el.innerHTML='<p class="t">'+(esc(h.text)||'<i>(boş blok)</i>')+'</p>'+
+          '<div class="m">'+esc(h.graph)+'/'+esc(h.file)+':'+h.line+'</div>';
+        el.addEventListener('click',function(){ blOpenDoc(h.graph,h.file,h.line,h.refid||null); });
+        box.appendChild(el);
+      });
+    }catch(e){ box.innerHTML='<div class="bl-empty">hata: '+e.message+'</div>'; }
   };
 
-  window.blShow=async function(i){
-    var h=window._blRows[i]; var box=document.getElementById('bl-bk-'+i);
-    box.innerHTML='<div class="loading">…</div>';
+  window.blOpenDoc=async function(graph,file,line,ref,push){
     try{
-      var url = h.refid
-        ? window.blBase()+'/backlinks/'+encodeURIComponent(h.refid)
-        : window.blBase()+'/page/backlinks?key='+encodeURIComponent(h.graph+'/'+h.page);
-      var r=await fetch(url,{headers:hdr()}); var d=await r.json();
-      var items=d.backlinks||[];
-      if(!items.length){ box.innerHTML='<div class="group-label">bu bloğa/sayfaya backlink yok</div>'; return; }
-      box.innerHTML='<div class="group-label">↩ '+items.length+' backlink</div>'+items.map(function(b){
-        return '<div class="issue-item"><span class="tag">'+esc(b.kind)+'</span>'+
-          '<span style="flex:1">'+(esc(b.text)||'—')+'</span>'+
-          '<span class="repo-chip">'+esc(b.source_graph)+'/'+esc(b.source_file)+':'+b.line+'</span></div>';
-      }).join('');
-    }catch(e){ box.innerHTML='<div class="empty">hata: '+e.message+'</div>'; }
+      var d=await jget('/doc?graph='+encodeURIComponent(graph)+'&file='+encodeURIComponent(file));
+      if(push!==false && current) history_.push(current);
+      current={graph:graph,file:file,line:line,ref:ref};
+      document.getElementById('bl-back').disabled=history_.length===0;
+      document.getElementById('bl-path').textContent=graph+'/'+file+(line?(' :'+line):'');
+      blRenderDoc(d.text,graph,line);
+      blLoadBacklinks(graph,file,ref);
+    }catch(e){
+      document.getElementById('bl-doc').innerHTML='<div class="bl-empty">doküman açılamadı: '+e.message+'</div>';
+    }
   };
+
+  function blRenderDoc(text,graph,focusLine){
+    var lines=text.split('\n');
+    var html=lines.map(function(raw,idx){
+      var no=idx+1;
+      if(raw.trim()==='.') return '';
+      var ws=(raw.match(/^([ \t]*)/)||['',''])[1];
+      var lvl=indentLevel(ws);
+      var content=raw.slice(ws.length);
+      var cls='ln';
+      if(content.startsWith('- ')) content=content.slice(2);
+      var heading=content.match(/^(#{1,6})\s+/);
+      if(heading){ cls+=' h'+Math.min(heading[1].length,3); content=content.replace(/^#{1,6}\s+/,''); }
+      else if(content.match(/^([A-Za-z][\w-]*):: /)){ cls+=' prop'; }
+      else if(raw.trimStart().startsWith('- ')){ cls+=' bullet'; }
+      if(no===focusLine) cls+=' focus';
+      var rendered=blLinkify(esc(content),graph)||'&nbsp;';
+      return '<div class="'+cls+'" data-line="'+no+'" style="margin-left:'+(lvl*1.4)+'em">'+rendered+'</div>';
+    }).join('');
+    var doc=document.getElementById('bl-doc');
+    doc.innerHTML=html||'<div class="bl-empty">boş doküman</div>';
+    if(focusLine){
+      var el=doc.querySelector('[data-line="'+focusLine+'"]');
+      if(el) el.scrollIntoView({block:'center'});
+    }
+  }
+
+  function blLinkify(s,graph){
+    s=s.replace(/\(\(([0-9a-fA-F-]{36})\)\)/g,function(m,u){
+      return '<a class="ref block" onclick="blGoBlock(\''+u+'\')">↗ ref</a>';
+    });
+    s=s.replace(/\[\[([^\]]+)\]\]/g,function(m,p){
+      return '<a class="ref page" onclick="blGoPage(\''+graph+'\',\''+p.replace(/'/g,"\\'")+'\')">[['+esc(p)+']]</a>';
+    });
+    return s;
+  }
+
+  window.blGoBlock=async function(uuid){
+    try{
+      var t=await jget('/resolve/block/'+encodeURIComponent(uuid));
+      blOpenDoc(t.graph,t.file,t.line,uuid);
+    }catch(e){ alert('Bu referans çözümlenemedi (dangling olabilir): '+uuid); }
+  };
+
+  window.blGoPage=async function(graph,page){
+    try{
+      var t=await jget('/resolve/page?key='+encodeURIComponent(graph+'/'+page));
+      blOpenDoc(t.graph,t.file,null,null);
+    }catch(e){ alert('Sayfa bulunamadı: '+page); }
+  };
+
+  async function blLoadBacklinks(graph,file,ref){
+    var pageKey=pageKeyFromFile(graph,file);
+    var items=[];
+    try{
+      if(ref){
+        var d=await jget('/backlinks/'+encodeURIComponent(ref));
+        items=d.backlinks.map(function(b){return Object.assign({},b,{_src:'blok'});});
+      }
+      var pd=await jget('/page/backlinks?key='+encodeURIComponent(pageKey));
+      var seen={};
+      items.forEach(function(b){ seen[b.source_file+':'+b.line]=1; });
+      (pd.backlinks||[]).forEach(function(b){
+        var k=b.source_file+':'+b.line;
+        if(!seen[k]){ items.push(Object.assign({},b,{_src:'sayfa'})); seen[k]=1; }
+      });
+    }catch(e){}
+    var box=document.getElementById('bl-blinks');
+    if(!items.length){ box.style.display='none'; return; }
+    box.style.display='block'; box.innerHTML='';
+    var head=document.createElement('div'); head.className='bl-bhead';
+    head.textContent='↩ Bu '+(ref?'bloğa/sayfaya':'sayfaya')+' gelen '+items.length+' backlink — tıkla, kaynağa git';
+    box.appendChild(head);
+    items.forEach(function(b){
+      var el=document.createElement('div'); el.className='bl-bitem';
+      el.innerHTML='<span class="bl-badge '+esc(b.kind)+'">'+esc(b.kind)+'</span>'+(esc(b.text)||'<i>(boş)</i>')+
+        '<div class="m">'+esc(b.source_graph)+'/'+esc(b.source_file)+':'+b.line+(b.resolved===false?' · dangling':'')+'</div>';
+      var srcRef=/^[0-9a-fA-F-]{36}$/.test(b.source_bbl_id||'')?b.source_bbl_id:null;
+      el.addEventListener('click',function(){ blOpenDoc(b.source_graph,b.source_file,b.line,srcRef); });
+      box.appendChild(el);
+    });
+  }
+
+  window.blGoBack=function(){
+    var p=history_.pop(); if(!p) return;
+    document.getElementById('bl-back').disabled=history_.length===0;
+    blOpenDoc(p.graph,p.file,p.line,p.ref,false);
+  };
+
+  document.addEventListener('DOMContentLoaded',function(){
+    var q=document.getElementById('bl-q');
+    if(q) q.addEventListener('keydown',function(e){ if(e.key==='Enter') blDoSearch(); });
+  });
 })();
 </script>
 </body>
