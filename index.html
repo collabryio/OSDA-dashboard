@@ -1,609 +1,242 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OSDA Dashboard</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OSDA Backlink DB</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f4;color:#1c1c1b;min-height:100vh}
-.app{max-width:900px;margin:0 auto;padding:1.5rem}
-.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:8px}
-.header h1{font-size:18px;font-weight:500;display:flex;align-items:center;gap:8px}
-.config-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.config-row input{font-size:13px;padding:6px 10px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b;width:260px}
-.config-row button{font-size:13px;padding:6px 14px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b;cursor:pointer}
-.config-row button:hover{background:#f0ede8}
-.tabs{display:flex;gap:4px;margin-bottom:1rem;border-bottom:1px solid #e5e2dc}
-.tab{padding:8px 16px;font-size:14px;cursor:pointer;border:none;background:none;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px}
-.tab.active{color:#1c1c1b;border-bottom:2px solid #1c1c1b;font-weight:500}
-.tab:hover:not(.active){color:#1c1c1b}
-.badge{display:inline-block;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:6px;background:#f0ede8;color:#888}
-.card{background:#fff;border:1px solid #e5e2dc;border-radius:12px;padding:1rem 1.25rem;margin-bottom:10px}
-.person-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.avatar{width:32px;height:32px;border-radius:50%;background:#e6f1fb;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#185fa5;flex-shrink:0}
-.person-name{font-weight:500;font-size:15px}
-.group-label{font-size:12px;color:#888;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.04em}
-.issue-item{font-size:13px;padding:4px 0;display:flex;align-items:baseline;gap:6px;border-bottom:1px solid #f0ede8}
-.issue-item:last-child{border-bottom:none}
-.issue-item a{color:#185fa5;text-decoration:none;flex:1}
-.issue-item a:hover{text-decoration:underline}
-.repo-chip{font-size:11px;color:#aaa;white-space:nowrap}
-.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;margin:2px 3px 2px 0;background:#f0ede8;color:#888}
-.tag.gnxt{background:#e1f5ee;color:#0f6e56}
-.tag.gltr{background:#faeeda;color:#854f0b}
-.tag.gbug{background:#fcebeb;color:#a32d2d}
-.tag.gwtng{background:#e6f1fb;color:#185fa5}
-.bbl-title{font-weight:500;font-size:14px;margin-bottom:6px}
-.bbl-content{font-size:13px;color:#666;line-height:1.6}
-.bbl-meta{font-size:12px;color:#aaa;margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.bbl-meta a{color:#aaa;text-decoration:none}
-.bbl-meta a:hover{text-decoration:underline}
-.filters{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
-.filter-btn{font-size:12px;padding:4px 12px;border:1px solid #d0cdc7;border-radius:10px;background:#fff;color:#888;cursor:pointer}
-.filter-btn.active{background:#1c1c1b;color:#fff;border-color:#1c1c1b}
-.empty{text-align:center;padding:2rem;color:#aaa;font-size:14px}
-.loading{text-align:center;padding:2rem;color:#888;font-size:14px}
-.error-box{background:#fcebeb;color:#a32d2d;padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:1rem;display:none}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
-.stat{background:#f0ede8;border-radius:8px;padding:12px 16px;text-align:center}
-.stat-num{font-size:24px;font-weight:500}
-.stat-label{font-size:12px;color:#888;margin-top:2px}
-.days-row{display:flex;align-items:center;gap:8px;margin-bottom:1rem}
-.days-row label{font-size:13px;color:#888}
-.days-row select{font-size:13px;padding:4px 8px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b}
+  :root { --bg:#0f1115; --fg:#e6e6e6; --mut:#8b93a1; --acc:#5aa9ff; --card:#171a21;
+          --bd:#252a34; --hl:#2a3345; }
+  * { box-sizing:border-box; }
+  html,body { height:100%; margin:0; }
+  body { font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+         background:var(--bg); color:var(--fg); display:flex; flex-direction:column; }
+  header { padding:12px 18px; border-bottom:1px solid var(--bd); display:flex;
+           align-items:center; gap:14px; flex:0 0 auto; }
+  header h1 { margin:0; font-size:16px; } header h1 span { color:var(--acc); }
+  header a { color:var(--acc); text-decoration:none; font-size:12px; }
+  .main { flex:1; display:flex; min-height:0; }
 
-/* Backlink okuyucu (sekme içi) */
-.app.app-wide{max-width:none}
-.bl-reader{--bl-bg:#0f1115;--bl-fg:#e6e6e6;--bl-mut:#8b93a1;--bl-acc:#5aa9ff;--bl-card:#171a21;--bl-bd:#252a34;--bl-hl:#2a3345;
-  background:var(--bl-bg);color:var(--bl-fg);border:1px solid var(--bl-bd);border-radius:12px;overflow:hidden;
-  display:flex;flex-direction:column;height:calc(100vh - 140px);min-height:520px;font:14px/1.55 system-ui,-apple-system,sans-serif}
-.bl-reader .bl-top{padding:10px 14px;border-bottom:1px solid var(--bl-bd);display:flex;align-items:center;gap:12px;flex:0 0 auto}
-.bl-reader .bl-top h2{margin:0;font-size:15px;font-weight:500}
-.bl-reader .bl-top h2 span{color:var(--bl-acc)}
-.bl-reader .bl-stat{color:var(--bl-mut);font-size:12px;margin-left:auto}
-.bl-reader .bl-main{flex:1;display:flex;min-height:0}
-.bl-reader .bl-side{width:320px;flex:0 0 320px;border-right:1px solid var(--bl-bd);display:flex;flex-direction:column;min-height:0}
-.bl-reader .bl-search{padding:10px;border-bottom:1px solid var(--bl-bd)}
-.bl-reader .bl-search .row{display:flex;gap:6px}
-.bl-reader .bl-search input{flex:1;min-width:0;padding:8px 10px;border-radius:7px;border:1px solid var(--bl-bd);background:var(--bl-card);color:var(--bl-fg);font:inherit}
-.bl-reader .bl-search button{padding:8px 12px;border-radius:7px;border:none;background:var(--bl-acc);color:#04122b;font-weight:600;cursor:pointer}
-.bl-reader .bl-hint{color:var(--bl-mut);font-size:11px;margin-top:6px}
-.bl-reader .bl-results{overflow-y:auto;flex:1}
-.bl-reader .bl-res{padding:9px 12px;border-bottom:1px solid var(--bl-bd);cursor:pointer}
-.bl-reader .bl-res:hover{background:var(--bl-card)}
-.bl-reader .bl-res .t{margin:0}
-.bl-reader .bl-res .m{color:var(--bl-mut);font-size:11px;margin-top:3px;word-break:break-all}
-.bl-reader .bl-view{flex:1;display:flex;flex-direction:column;min-height:0}
-.bl-reader .bl-bar{padding:8px 14px;border-bottom:1px solid var(--bl-bd);display:flex;align-items:center;gap:10px;flex:0 0 auto}
-.bl-reader .bl-bar .path{color:var(--bl-mut);font-size:12px;word-break:break-all}
-.bl-reader .bl-bar button{background:var(--bl-card);color:var(--bl-fg);border:1px solid var(--bl-bd);padding:5px 10px;font-size:12px;border-radius:6px;cursor:pointer}
-.bl-reader .bl-bar button:disabled{opacity:.4;cursor:default}
-.bl-reader .bl-blinks{border-bottom:1px solid var(--bl-bd);max-height:34%;overflow-y:auto;flex:0 0 auto}
-.bl-reader .bl-bhead{padding:8px 14px;color:var(--bl-mut);font-size:12px;position:sticky;top:0;background:var(--bl-bg);border-bottom:1px solid var(--bl-bd)}
-.bl-reader .bl-bitem{padding:7px 14px;border-bottom:1px solid var(--bl-bd);cursor:pointer}
-.bl-reader .bl-bitem:hover{background:var(--bl-card)}
-.bl-reader .bl-bitem .m{color:var(--bl-mut);font-size:11px;margin-top:2px;word-break:break-all}
-.bl-reader .bl-doc{overflow-y:auto;flex:1;padding:14px 18px}
-.bl-reader .ln{white-space:pre-wrap;word-break:break-word;padding:1px 0}
-.bl-reader .ln.h1{font-size:19px;font-weight:700;margin-top:6px}
-.bl-reader .ln.h2{font-size:16px;font-weight:700;color:#cfe3ff;margin-top:4px}
-.bl-reader .ln.h3{font-size:14px;font-weight:700;color:#b9c6d8}
-.bl-reader .ln.prop{color:var(--bl-mut);font-size:12px}
-.bl-reader .ln.bullet::before{content:"• ";color:var(--bl-mut)}
-.bl-reader .ln.focus{background:var(--bl-hl);border-radius:6px}
-.bl-reader .bl-badge{display:inline-block;font-size:10px;padding:0 6px;border-radius:20px;background:#22303f;color:var(--bl-acc);margin-right:6px;vertical-align:1px}
-.bl-reader .bl-badge.rbl{background:#2f2436;color:#d69bff}
-.bl-reader .bl-badge.blockref{background:#22303f;color:#5aa9ff}
-.bl-reader .bl-badge.wikilink{background:#243626;color:#7ad67a}
-.bl-reader .bl-badge.tag{background:#3a3320;color:#e6c65a}
-.bl-reader a.ref{cursor:pointer;text-decoration:none;border-bottom:1px dashed}
-.bl-reader a.ref.block{color:#5aa9ff}
-.bl-reader a.ref.page{color:#7ad67a}
-.bl-reader .bl-empty{color:var(--bl-mut);padding:24px;text-align:center}
-@media(max-width:800px){
-  .bl-reader .bl-main{flex-direction:column}
-  .bl-reader .bl-side{width:100%;flex:0 0 40%;border-right:none;border-bottom:1px solid var(--bl-bd)}
-}
+  /* Sol: arama */
+  .side { width:340px; flex:0 0 340px; border-right:1px solid var(--bd);
+          display:flex; flex-direction:column; min-height:0; }
+  .search { padding:12px; border-bottom:1px solid var(--bd); }
+  .search .row { display:flex; gap:6px; }
+  input,select,button { font:inherit; padding:8px 10px; border-radius:7px;
+          border:1px solid var(--bd); background:var(--card); color:var(--fg); }
+  input#q { flex:1; min-width:0; }
+  button { background:var(--acc); color:#04122b; border:none; cursor:pointer; font-weight:600; }
+  .hint { color:var(--mut); font-size:11px; margin-top:6px; }
+  .results { overflow-y:auto; flex:1; }
+  .res { padding:9px 12px; border-bottom:1px solid var(--bd); cursor:pointer; }
+  .res:hover { background:var(--card); }
+  .res .t { margin:0; }
+  .res .m { color:var(--mut); font-size:11px; margin-top:3px; word-break:break-all; }
+
+  /* Sağ: doküman */
+  .view { flex:1; display:flex; flex-direction:column; min-height:0; }
+  .bar { padding:9px 16px; border-bottom:1px solid var(--bd); display:flex;
+         align-items:center; gap:10px; flex:0 0 auto; }
+  .bar .path { color:var(--mut); font-size:12px; word-break:break-all; }
+  .bar button { background:var(--card); color:var(--fg); border:1px solid var(--bd);
+                padding:5px 10px; font-size:12px; }
+  .backlinks { border-bottom:1px solid var(--bd); max-height:34%; overflow-y:auto; flex:0 0 auto; }
+  .bl-head { padding:8px 16px; color:var(--mut); font-size:12px; position:sticky; top:0;
+             background:var(--bg); border-bottom:1px solid var(--bd); }
+  .bl { padding:7px 16px; border-bottom:1px solid var(--bd); cursor:pointer; }
+  .bl:hover { background:var(--card); }
+  .bl .m { color:var(--mut); font-size:11px; margin-top:2px; word-break:break-all; }
+  .doc { overflow-y:auto; flex:1; padding:16px 20px; }
+  .ln { white-space:pre-wrap; word-break:break-word; padding:1px 0; }
+  .ln.h1 { font-size:19px; font-weight:700; margin-top:6px; }
+  .ln.h2 { font-size:16px; font-weight:700; color:#cfe3ff; margin-top:4px; }
+  .ln.h3 { font-size:14px; font-weight:700; color:#b9c6d8; }
+  .ln.prop { color:var(--mut); font-size:12px; }
+  .ln.bullet::before { content:"• "; color:var(--mut); }
+  .ln.focus { background:var(--hl); border-radius:6px; }
+  .badge { display:inline-block; font-size:10px; padding:0 6px; border-radius:20px;
+           background:#22303f; color:var(--acc); margin-right:6px; vertical-align:1px; }
+  .badge.rbl{background:#2f2436;color:#d69bff} .badge.blockref{background:#22303f;color:#5aa9ff}
+  .badge.wikilink{background:#243626;color:#7ad67a} .badge.tag{background:#3a3320;color:#e6c65a}
+  a.ref { cursor:pointer; text-decoration:none; border-bottom:1px dashed; }
+  a.ref.block { color:#5aa9ff; } a.ref.page { color:#7ad67a; }
+  a.ref.dead { color:#c96; border-bottom-style:dotted; }
+  .empty { color:var(--mut); padding:24px; text-align:center; }
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="header">
-    <h1><i class="ti ti-layout-dashboard"></i> OSDA Dashboard</h1>
-    <div class="config-row">
-      <input type="password" id="apikey" placeholder="api-key" value="" />
-      <input type="text" id="baseurl" placeholder="http://server:8000" value="https://osda-api.collabry.io" style="width:200px"/>
-      <button onclick="loadAll()"><i class="ti ti-refresh"></i> Yenile</button>
-    </div>
-  </div>
-
-  <div id="error-box" class="error-box"></div>
-
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('issues',this)">Issues <span class="badge" id="issues-count">—</span></button>
-    <button class="tab" onclick="switchTab('push',this)">Push Raporu <span class="badge" id="push-count">—</span></button>
-    <button class="tab" onclick="switchTab('bbl',this)">BBL'ler <span class="badge" id="bbl-count">—</span></button>
-    <button class="tab" onclick="switchTab('backlink',this)">Backlink <span class="badge" id="backlink-count">—</span></button>
-  </div>
-
-  <div id="tab-issues">
-    <div class="days-row">
-      <label>Son</label>
-      <select id="issues-days" onchange="loadIssues()">
-        <option value="7">7 gün</option>
-        <option value="14" selected>14 gün</option>
-        <option value="30">30 gün</option>
-        <option value="60">60 gün</option>
-      </select>
-    </div>
-    <div class="stats" id="issues-stats" style="display:none">
-      <div class="stat"><div class="stat-num" id="s-completed">—</div><div class="stat-label">Tamamlanan</div></div>
-      <div class="stat"><div class="stat-num" id="s-created">—</div><div class="stat-label">Oluşturulan</div></div>
-      <div class="stat"><div class="stat-num" id="s-open">—</div><div class="stat-label">Açık</div></div>
-    </div>
-    <div id="issues-content"><div class="loading">Yükleniyor...</div></div>
-  </div>
-
-  <div id="tab-push" style="display:none">
-    <div class="days-row">
-      <label>Son</label>
-      <select id="push-days" onchange="loadPush()">
-        <option value="7" selected>7 gün</option>
-        <option value="14">14 gün</option>
-        <option value="30">30 gün</option>
-      </select>
-    </div>
-    <div id="push-content"><div class="loading">Yükleniyor...</div></div>
-  </div>
-
-  <div id="tab-bbl" style="display:none">
-    <div class="filters" id="bbl-filters">
-      <button class="filter-btn active" onclick="filterBbl(null,this)">Tümü</button>
-      <div id="tag-filter-btns"></div>
-    </div>
-    <div id="bbl-content"><div class="loading">Yükleniyor...</div></div>
-  </div>
-
-  <div id="tab-backlink" style="display:none">
-    <div class="bl-reader">
-      <div class="bl-top">
-        <h2>OSDA <span>Backlink</span></h2>
-        <span class="bl-stat" id="bl-stat"></span>
+<header>
+  <h1>OSDA <span>Backlink</span> DB</h1>
+  <a id="docs-link" href="/docs">API /docs</a>
+  <span id="stat" style="color:var(--mut);font-size:12px;margin-left:auto"></span>
+</header>
+<div class="main">
+  <div class="side">
+    <div class="search">
+      <div class="row">
+        <input id="q" placeholder="Ara: metin veya refid…" autofocus>
+        <button onclick="doSearch()">Ara</button>
       </div>
-      <div class="bl-main">
-        <div class="bl-side">
-          <div class="bl-search">
-            <div class="row">
-              <input id="bl-q" placeholder="Ara: metin veya refid…" />
-              <button type="button" onclick="blDoSearch()">Ara</button>
-            </div>
-            <div class="bl-hint">Sonuca tıkla → dokümanı aç, linkler arası gez.</div>
-          </div>
-          <div id="bl-results" class="bl-results"><div class="bl-empty">Aramaya başla</div></div>
-        </div>
-        <div class="bl-view">
-          <div class="bl-bar">
-            <button type="button" id="bl-back" onclick="blGoBack()" disabled>← Geri</button>
-            <span id="bl-path" class="path">Doküman seçilmedi</span>
-          </div>
-          <div id="bl-blinks" class="bl-blinks" style="display:none"></div>
-          <div id="bl-doc" class="bl-doc"><div class="bl-empty">Soldan bir sonuç seç ya da ara.</div></div>
-        </div>
-      </div>
+      <div class="hint">Bir sonuca tıkla → dokümanı aç, linkler arası gez.</div>
     </div>
+    <div id="results" class="results"><div class="empty">Aramaya başla</div></div>
+  </div>
+
+  <div class="view">
+    <div class="bar">
+      <button id="back" onclick="goBack()" disabled>← Geri</button>
+      <span id="path" class="path">Doküman seçilmedi</span>
+    </div>
+    <div id="backlinks" class="backlinks" style="display:none"></div>
+    <div id="doc" class="doc"><div class="empty">Soldan bir sonuç seç ya da ara.</div></div>
   </div>
 </div>
 
 <script>
-let bblData=[];
+const $ = id => document.getElementById(id);
+const esc = s => (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+// osda-api altında /backlink mount ise path prefix; doğrudan 8010'da boş kalır
+const BASE = location.pathname.startsWith('/backlink') ? '/backlink' : '';
+let history_ = [];   // {graph,file,line,ref}
+let current = null;
 
-function base(){
-  return document.getElementById('baseurl').value.trim().replace(/\/$/,'')
-}
-
-function apiKey(){
-  return document.getElementById('apikey').value.trim()
-}
-
-function headers(){
-  return {'api-key': apiKey()}
-}
-
-function saveSettings(){
-  localStorage.setItem('osda_api_key', apiKey());
-  localStorage.setItem('osda_base_url', base());
-}
-
-function loadSettings(){
-  const savedKey = localStorage.getItem('osda_api_key');
-  const savedBase = localStorage.getItem('osda_base_url');
-
-  if(savedKey){
-    document.getElementById('apikey').value = savedKey;
-  }
-
-  if(savedBase){
-    document.getElementById('baseurl').value = savedBase;
-  }
-}
-
-function bindSettings(){
-  document.getElementById('apikey').addEventListener('input', saveSettings);
-  document.getElementById('baseurl').addEventListener('input', saveSettings);
-}
-
-function showError(msg){
-  const b=document.getElementById('error-box');
-  b.textContent=msg;
-  b.style.display='block';
-  setTimeout(()=>b.style.display='none',6000);
-}
-
-function switchTab(name,btn){
-  ['issues','push','bbl','backlink'].forEach(t=>{
-    const el=document.getElementById('tab-'+t);
-    if(el) el.style.display=t===name?'block':'none';
-  });
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelector('.app').classList.toggle('app-wide', name==='backlink');
-  if(name==='backlink') blLoadStats();
-}
-
-function initials(name){
-  return name.split(/[-_\s]/).slice(0,2).map(s=>s[0]||'').join('').toUpperCase()||'?';
-}
-
-function tagClass(t){
-  if(t.includes('g/nxt'))return'gnxt';
-  if(t.includes('g/ltr'))return'gltr';
-  if(t.includes('g/bug'))return'gbug';
-  if(t.includes('g/wtng'))return'gwtng';
-  return'';
-}
-
-async function loadIssues(){
-  saveSettings();
-
-  const days=document.getElementById('issues-days').value;
-  const el=document.getElementById('issues-content');
-  el.innerHTML='<div class="loading">Yükleniyor...</div>';
-
-  try{
-    const r=await fetch(`${base()}/issues.json?days=${days}`,{headers:headers()});
-    if(!r.ok)throw new Error(`HTTP ${r.status}`);
-    const d=await r.json();
-    renderIssues(d);
-  }catch(e){
-    showError('Issues yüklenemedi: '+e.message);
-    el.innerHTML='<div class="empty">Yüklenemedi</div>';
-  }
-}
-
-function renderIssues(d){
-  const report=d.report||[];
-  let completed=0,created=0,open=0;
-
-  report.forEach(p=>{
-    completed+=p.completed.length;
-    created+=p.created.length;
-    open+=p.open.length;
-  });
-
-  document.getElementById('s-completed').textContent=completed;
-  document.getElementById('s-created').textContent=created;
-  document.getElementById('s-open').textContent=open;
-  document.getElementById('issues-stats').style.display='grid';
-  document.getElementById('issues-count').textContent=report.length;
-
-  if(!report.length){
-    document.getElementById('issues-content').innerHTML='<div class="empty">Sonuç yok</div>';
-    return;
-  }
-
-  document.getElementById('issues-content').innerHTML=report.map(p=>{
-    const groups=['completed','created','open'].filter(g=>p[g]&&p[g].length>0);
-    const groupLabels={completed:'Tamamlanan',created:'Oluşturulan',open:'Açık'};
-
-    return`<div class="card">
-      <div class="person-header">
-        <div class="avatar">${initials(p.assignee)}</div>
-        <div class="person-name">${p.assignee}</div>
-      </div>
-      ${groups.map(g=>`
-        <div class="group-label">${groupLabels[g]} (${p[g].length})</div>
-        ${p[g].slice(0,10).map(i=>`
-          <div class="issue-item">
-            <a href="${i.url}" target="_blank">${i.title}</a>
-            <span class="repo-chip">${i.repo.replace('collabryio/','')}</span>
-          </div>`).join('')}
-        ${p[g].length>10?`<div style="font-size:12px;color:#aaa;padding:4px 0">+${p[g].length-10} daha</div>`:''}`).join('')}
-    </div>`;
-  }).join('');
-}
-
-async function loadPush(){
-  saveSettings();
-
-  const days=document.getElementById('push-days').value;
-  const el=document.getElementById('push-content');
-  el.innerHTML='<div class="loading">Yükleniyor...</div>';
-
-  try{
-    const r=await fetch(`${base()}/report.json?days=${days}`,{headers:headers()});
-    if(!r.ok)throw new Error(`HTTP ${r.status}`);
-    const d=await r.json();
-    renderPush(d);
-  }catch(e){
-    showError('Push raporu yüklenemedi: '+e.message);
-    el.innerHTML='<div class="empty">Yüklenemedi</div>';
-  }
-}
-
-function renderPush(d){
-  const report=d.report||[];
-  document.getElementById('push-count').textContent=report.length;
-
-  if(!report.length){
-    document.getElementById('push-content').innerHTML='<div class="empty">Sonuç yok</div>';
-    return;
-  }
-
-  document.getElementById('push-content').innerHTML=report.map(p=>`
-    <div class="card">
-      <div class="person-header">
-        <div class="avatar">${initials(p.author)}</div>
-        <div class="person-name">${p.author}</div>
-      </div>
-      ${p.files.slice(0,15).map(f=>`
-        <div class="issue-item">
-          <span style="flex:1;font-size:13px">${f.filename.split('/').pop()}</span>
-          <span class="repo-chip">${f.filename.split('/').slice(0,-1).join('/').replace('collabryio/','')}</span>
-        </div>`).join('')}
-      ${p.files.length>15?`<div style="font-size:12px;color:#aaa;padding:4px 0">+${p.files.length-15} daha</div>`:''}
-    </div>`).join('');
-}
-
-async function loadTags(){
-  try{
-    const r=await fetch(`${base()}/tags.json`,{headers:headers()});
-    if(!r.ok) throw new Error();
-    const d=await r.json();
-    const gtd=d.gtd||[];
-    const labels=d.labels||{};
-    const el=document.getElementById('tag-filter-btns');
-    el.innerHTML=gtd.map(t=>`<button class="filter-btn" onclick="filterBbl('#${t}',this)">#${t}</button>`).join('');
-  }catch(e){
-    // tags.json yoksa varsayılan
-    document.getElementById('tag-filter-btns').innerHTML=
-      `<button class="filter-btn" onclick="filterBbl('#g/nxt',this)">#g/nxt</button>
-       <button class="filter-btn" onclick="filterBbl('#g/ltr',this)">#g/ltr</button>
-       <button class="filter-btn" onclick="filterBbl('#g/bug',this)">#g/bug</button>
-       <button class="filter-btn" onclick="filterBbl('#g/wtng',this)">#g/wtng</button>`;
-  }
-}
-
-async function loadBbl(){
-  saveSettings();
-
-  const el=document.getElementById('bbl-content');
-  el.innerHTML='<div class="loading">Yükleniyor...</div>';
-
-  try{
-    const r=await fetch(`${base()}/bbl.json`,{headers:headers()});
-    if(!r.ok)throw new Error(`HTTP ${r.status}`);
-    const d=await r.json();
-    bblData=d.bbls||[];
-    document.getElementById('bbl-count').textContent=bblData.length;
-    renderBbl(bblData);
-  }catch(e){
-    showError('BBL yüklenemedi: '+e.message);
-    el.innerHTML='<div class="empty">Yüklenemedi</div>';
-  }
-}
-
-function filterBbl(tag,btn){
-  document.querySelectorAll('#bbl-filters .filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderBbl(tag?bblData.filter(b=>b.tags&&b.tags.includes(tag)):bblData);
-}
-
-function renderBbl(bbls){
-  const el=document.getElementById('bbl-content');
-
-  if(!bbls.length){
-    el.innerHTML='<div class="empty">Sonuç yok</div>';
-    return;
-  }
-
-  el.innerHTML=bbls.map(b=>{
-    const tags=(b.tags||[]).map(t=>`<span class="tag ${tagClass(t)}">${t}</span>`).join('');
-    const content=(b.content||[]).slice(0,4).map(c=>`<div>${c}</div>`).join('');
-    const repoUrl=b.repo&&b.file_path?`https://github.com/${b.repo}/blob/main/${b.file_path}`:'';
-
-    return`<div class="card">
-      <div class="bbl-title">${b.title||'—'}</div>
-      ${content?`<div class="bbl-content">${content}</div>`:''}
-      <div class="bbl-meta">
-        ${tags}
-        ${b.date?`<span>${b.date}</span>`:''}
-        ${repoUrl?`<a href="${repoUrl}" target="_blank"><i class="ti ti-external-link" style="font-size:12px"></i> ${b.file_path?b.file_path.split('/').pop():''}</a>`:''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function loadAll(){loadTags();loadIssues();loadPush();loadBbl();}
-window.addEventListener('DOMContentLoaded',()=>{
-  loadSettings();
-  bindSettings();
-  loadAll();
-});
-
-// ===================== BACKLINK okuyucu (dashboard içi) =====================
+// Dashboard'dan #api-key=... ile gelindiyse kaydet ve URL'den temizle
 (function(){
-  var esc=function(s){return (s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});};
-  var history_=[];
-  var current=null;
-
-  function blApi(){ return base().replace(/\/$/,'') + '/backlink'; }
-  function blHdr(){ return {'api-key': apiKey()}; }
-
-  async function jget(url){
-    var r=await fetch(blApi()+url,{headers:blHdr()});
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    return r.json();
+  const m = location.hash.match(/(?:^|[&#])api-key=([^&]*)/);
+  if(m){
+    try { localStorage.setItem('osda_api_key', decodeURIComponent(m[1])); } catch(e){}
+    history.replaceState(null, '', location.pathname + location.search);
   }
-
-  function pageKeyFromFile(graph,file){
-    var stem=file.split('/').pop().replace(/\.md$/,'');
-    stem=stem.replace(/___/g,'/').replace(/^#\s*/,'').trim();
-    return graph+'/'+stem;
-  }
-  function indentLevel(ws){
-    var t=(ws.match(/\t/g)||[]).length;
-    return t+Math.floor((ws.length-t)/2);
-  }
-
-  window.blLoadStats=async function(){
-    try{
-      var s=await jget('/stats');
-      document.getElementById('bl-stat').textContent=
-        (s.blocks||0).toLocaleString()+' blok · '+(s.edges||0).toLocaleString()+' link';
-      document.getElementById('backlink-count').textContent=(s.targets||s.blocks||'—');
-    }catch(e){
-      document.getElementById('bl-stat').textContent='API bağlanamadı';
-    }
-  };
-
-  window.blDoSearch=async function(){
-    var q=(document.getElementById('bl-q').value||'').trim(); if(!q) return;
-    var box=document.getElementById('bl-results');
-    box.innerHTML='<div class="bl-empty">…</div>';
-    try{
-      var rows=await jget('/search?q='+encodeURIComponent(q)+'&limit=50');
-      box.innerHTML='';
-      if(!rows.length){ box.innerHTML='<div class="bl-empty">sonuç yok</div>'; return; }
-      document.getElementById('backlink-count').textContent=rows.length;
-      rows.forEach(function(h){
-        var el=document.createElement('div'); el.className='bl-res';
-        el.innerHTML='<p class="t">'+(esc(h.text)||'<i>(boş blok)</i>')+'</p>'+
-          '<div class="m">'+esc(h.graph)+'/'+esc(h.file)+':'+h.line+'</div>';
-        el.addEventListener('click',function(){ blOpenDoc(h.graph,h.file,h.line,h.refid||null); });
-        box.appendChild(el);
-      });
-    }catch(e){ box.innerHTML='<div class="bl-empty">hata: '+e.message+'</div>'; }
-  };
-
-  window.blOpenDoc=async function(graph,file,line,ref,push){
-    try{
-      var d=await jget('/doc?graph='+encodeURIComponent(graph)+'&file='+encodeURIComponent(file));
-      if(push!==false && current) history_.push(current);
-      current={graph:graph,file:file,line:line,ref:ref};
-      document.getElementById('bl-back').disabled=history_.length===0;
-      document.getElementById('bl-path').textContent=graph+'/'+file+(line?(' :'+line):'');
-      blRenderDoc(d.text,graph,line);
-      blLoadBacklinks(graph,file,ref);
-    }catch(e){
-      document.getElementById('bl-doc').innerHTML='<div class="bl-empty">doküman açılamadı: '+e.message+'</div>';
-    }
-  };
-
-  function blRenderDoc(text,graph,focusLine){
-    var lines=text.split('\n');
-    var html=lines.map(function(raw,idx){
-      var no=idx+1;
-      if(raw.trim()==='.') return '';
-      var ws=(raw.match(/^([ \t]*)/)||['',''])[1];
-      var lvl=indentLevel(ws);
-      var content=raw.slice(ws.length);
-      var cls='ln';
-      if(content.startsWith('- ')) content=content.slice(2);
-      var heading=content.match(/^(#{1,6})\s+/);
-      if(heading){ cls+=' h'+Math.min(heading[1].length,3); content=content.replace(/^#{1,6}\s+/,''); }
-      else if(content.match(/^([A-Za-z][\w-]*):: /)){ cls+=' prop'; }
-      else if(raw.trimStart().startsWith('- ')){ cls+=' bullet'; }
-      if(no===focusLine) cls+=' focus';
-      var rendered=blLinkify(esc(content),graph)||'&nbsp;';
-      return '<div class="'+cls+'" data-line="'+no+'" style="margin-left:'+(lvl*1.4)+'em">'+rendered+'</div>';
-    }).join('');
-    var doc=document.getElementById('bl-doc');
-    doc.innerHTML=html||'<div class="bl-empty">boş doküman</div>';
-    if(focusLine){
-      var el=doc.querySelector('[data-line="'+focusLine+'"]');
-      if(el) el.scrollIntoView({block:'center'});
-    }
-  }
-
-  function blLinkify(s,graph){
-    s=s.replace(/\(\(([0-9a-fA-F-]{36})\)\)/g,function(m,u){
-      return '<a class="ref block" onclick="blGoBlock(\''+u+'\')">↗ ref</a>';
-    });
-    s=s.replace(/\[\[([^\]]+)\]\]/g,function(m,p){
-      return '<a class="ref page" onclick="blGoPage(\''+graph+'\',\''+p.replace(/'/g,"\\'")+'\')">[['+esc(p)+']]</a>';
-    });
-    return s;
-  }
-
-  window.blGoBlock=async function(uuid){
-    try{
-      var t=await jget('/resolve/block/'+encodeURIComponent(uuid));
-      blOpenDoc(t.graph,t.file,t.line,uuid);
-    }catch(e){ alert('Bu referans çözümlenemedi (dangling olabilir): '+uuid); }
-  };
-
-  window.blGoPage=async function(graph,page){
-    try{
-      var t=await jget('/resolve/page?key='+encodeURIComponent(graph+'/'+page));
-      blOpenDoc(t.graph,t.file,null,null);
-    }catch(e){ alert('Sayfa bulunamadı: '+page); }
-  };
-
-  async function blLoadBacklinks(graph,file,ref){
-    var pageKey=pageKeyFromFile(graph,file);
-    var items=[];
-    try{
-      if(ref){
-        var d=await jget('/backlinks/'+encodeURIComponent(ref));
-        items=d.backlinks.map(function(b){return Object.assign({},b,{_src:'blok'});});
-      }
-      var pd=await jget('/page/backlinks?key='+encodeURIComponent(pageKey));
-      var seen={};
-      items.forEach(function(b){ seen[b.source_file+':'+b.line]=1; });
-      (pd.backlinks||[]).forEach(function(b){
-        var k=b.source_file+':'+b.line;
-        if(!seen[k]){ items.push(Object.assign({},b,{_src:'sayfa'})); seen[k]=1; }
-      });
-    }catch(e){}
-    var box=document.getElementById('bl-blinks');
-    if(!items.length){ box.style.display='none'; return; }
-    box.style.display='block'; box.innerHTML='';
-    var head=document.createElement('div'); head.className='bl-bhead';
-    head.textContent='↩ Bu '+(ref?'bloğa/sayfaya':'sayfaya')+' gelen '+items.length+' backlink — tıkla, kaynağa git';
-    box.appendChild(head);
-    items.forEach(function(b){
-      var el=document.createElement('div'); el.className='bl-bitem';
-      el.innerHTML='<span class="bl-badge '+esc(b.kind)+'">'+esc(b.kind)+'</span>'+(esc(b.text)||'<i>(boş)</i>')+
-        '<div class="m">'+esc(b.source_graph)+'/'+esc(b.source_file)+':'+b.line+(b.resolved===false?' · dangling':'')+'</div>';
-      var srcRef=/^[0-9a-fA-F-]{36}$/.test(b.source_bbl_id||'')?b.source_bbl_id:null;
-      el.addEventListener('click',function(){ blOpenDoc(b.source_graph,b.source_file,b.line,srcRef); });
-      box.appendChild(el);
-    });
-  }
-
-  window.blGoBack=function(){
-    var p=history_.pop(); if(!p) return;
-    document.getElementById('bl-back').disabled=history_.length===0;
-    blOpenDoc(p.graph,p.file,p.line,p.ref,false);
-  };
-
-  document.addEventListener('DOMContentLoaded',function(){
-    var q=document.getElementById('bl-q');
-    if(q) q.addEventListener('keydown',function(e){ if(e.key==='Enter') blDoSearch(); });
-  });
 })();
+
+$('docs-link').href = BASE + '/docs';
+
+// --- yardımcılar ---
+function pageKeyFromFile(graph, file) {
+  let stem = file.split('/').pop().replace(/\.md$/,'');
+  stem = stem.replace(/___/g,'/').replace(/^#\s*/,'').trim();
+  return graph + '/' + stem;
+}
+function indentLevel(ws){ const t=(ws.match(/\t/g)||[]).length; return t + Math.floor((ws.length-t)/2); }
+
+async function jget(url){
+  const key = localStorage.getItem('osda_api_key') || '';
+  const r = await fetch(BASE + url, {headers: key ? {'api-key': key} : {}});
+  if(!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+// --- arama ---
+async function doSearch(){
+  const q = $('q').value.trim(); if(!q) return;
+  $('results').innerHTML = '<div class="empty">…</div>';
+  try {
+    const rows = await jget('/search?q='+encodeURIComponent(q)+'&limit=50');
+    const box = $('results'); box.innerHTML = '';
+    if(!rows.length){ box.innerHTML='<div class="empty">sonuç yok</div>'; return; }
+    for(const h of rows){
+      const el = document.createElement('div'); el.className = 'res';
+      el.innerHTML = `<p class="t">${esc(h.text)||'<i>(boş blok)</i>'}</p>
+        <div class="m">${esc(h.graph)}/${esc(h.file)}:${h.line}</div>`;
+      el.addEventListener('click', ()=>openDoc(h.graph, h.file, h.line, h.refid||null));
+      box.appendChild(el);
+    }
+  } catch(e){ $('results').innerHTML='<div class="empty">hata: '+e+'</div>'; }
+}
+
+// --- doküman aç ---
+async function openDoc(graph, file, line, ref, push){
+  try {
+    const d = await jget('/doc?graph='+encodeURIComponent(graph)+'&file='+encodeURIComponent(file));
+    if(push!==false && current) history_.push(current);
+    current = {graph, file, line, ref};
+    $('back').disabled = history_.length===0;
+    $('path').textContent = graph+'/'+file + (line?(' :'+line):'');
+    renderDoc(d.text, graph, line);
+    loadBacklinks(graph, file, ref);
+  } catch(e){ $('doc').innerHTML='<div class="empty">doküman açılamadı: '+e+'</div>'; }
+}
+
+// --- doküman render (satır satır, tıklanabilir linkler) ---
+function renderDoc(text, graph, focusLine){
+  const lines = text.split('\n');
+  const html = lines.map((raw, idx)=>{
+    const no = idx+1;
+    if(raw.trim()==='.') return '';
+    const ws = (raw.match(/^([ \t]*)/)||['',''])[1];
+    const lvl = indentLevel(ws);
+    let content = raw.slice(ws.length);
+    let cls = 'ln';
+    if(content.startsWith('- ')){ content = content.slice(2); }
+    const heading = content.match(/^(#{1,6})\s+/);
+    if(heading){ cls += ' h'+Math.min(heading[1].length,3); content = content.replace(/^#{1,6}\s+/,''); }
+    else if(content.match(/^([A-Za-z][\w-]*):: /)){ cls += ' prop'; }
+    else if(raw.trimStart().startsWith('- ')){ cls += ' bullet'; }
+    if(no===focusLine) cls += ' focus';
+    const rendered = linkify(esc(content), graph) || '&nbsp;';
+    return `<div class="${cls}" data-line="${no}" style="margin-left:${lvl*1.4}em">${rendered}</div>`;
+  }).join('');
+  $('doc').innerHTML = html || '<div class="empty">boş doküman</div>';
+  if(focusLine){ const el=$('doc').querySelector(`[data-line="${focusLine}"]`);
+    if(el) el.scrollIntoView({block:'center'}); }
+}
+
+// ((uuid)) ve [[page]] -> tıklanabilir
+function linkify(s, graph){
+  s = s.replace(/\(\(([0-9a-fA-F-]{36})\)\)/g,
+    (m,u)=>`<a class="ref block" onclick="goBlock('${u}')">↗ ref</a>`);
+  s = s.replace(/\[\[([^\]]+)\]\]/g,
+    (m,p)=>`<a class="ref page" onclick="goPage('${graph}','${p.replace(/'/g,"\\'")}')">[[${esc(p)}]]</a>`);
+  return s;
+}
+
+// forward: blok referansına git
+async function goBlock(uuid){
+  try { const t = await jget('/resolve/block/'+encodeURIComponent(uuid));
+    openDoc(t.graph, t.file, t.line, uuid);
+  } catch(e){ alert('Bu referans çözümlenemedi (dangling olabilir): '+uuid); }
+}
+// forward: wikilink sayfasına git
+async function goPage(graph, page){
+  try { const t = await jget('/resolve/page?key='+encodeURIComponent(graph+'/'+page));
+    openDoc(t.graph, t.file, null, null);
+  } catch(e){ alert('Sayfa bulunamadı: '+page); }
+}
+
+// --- backlink paneli (backward) ---
+async function loadBacklinks(graph, file, ref){
+  const pageKey = pageKeyFromFile(graph, file);
+  let items = [];
+  try {
+    if(ref){ const d = await jget('/backlinks/'+encodeURIComponent(ref));
+      items = d.backlinks.map(b=>({...b, _src:'blok'})); }
+    const pd = await jget('/page/backlinks?key='+encodeURIComponent(pageKey));
+    const seen = new Set(items.map(b=>b.source_file+':'+b.line));
+    for(const b of pd.backlinks){ const k=b.source_file+':'+b.line;
+      if(!seen.has(k)){ items.push({...b,_src:'sayfa'}); seen.add(k); } }
+  } catch(e){}
+  const box = $('backlinks');
+  if(!items.length){ box.style.display='none'; return; }
+  box.style.display='block'; box.innerHTML = '';
+  const head = document.createElement('div'); head.className='bl-head';
+  head.textContent = `↩ Bu ${ref?'bloğa/sayfaya':'sayfaya'} gelen ${items.length} backlink — tıkla, kaynağa git`;
+  box.appendChild(head);
+  for(const b of items){
+    const el = document.createElement('div'); el.className='bl';
+    el.innerHTML = `<span class="badge ${b.kind}">${b.kind}</span>${esc(b.text)||'<i>(boş)</i>'}
+      <div class="m">${esc(b.source_graph)}/${esc(b.source_file)}:${b.line}${b.resolved===false?' · dangling':''}</div>`;
+    const srcRef = /^[0-9a-fA-F-]{36}$/.test(b.source_bbl_id||'') ? b.source_bbl_id : null;
+    el.addEventListener('click', ()=>openDoc(b.source_graph, b.source_file, b.line, srcRef));
+    box.appendChild(el);
+  }
+}
+
+function goBack(){ const p = history_.pop(); if(!p) return;
+  $('back').disabled = history_.length===0;
+  openDoc(p.graph, p.file, p.line, p.ref, false); }
+
+$('q').addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch(); });
+jget('/stats').then(s=>{ $('stat').textContent = `${s.blocks.toLocaleString()} blok · ${s.edges.toLocaleString()} link`; }).catch(()=>{});
 </script>
 </body>
 </html>
