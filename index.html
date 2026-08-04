@@ -399,7 +399,7 @@ async function loadPdb(){
   el.innerHTML='<div class="loading">Yükleniyor...</div>';
 
   try{
-    const r=await fetch(`${pdbBase()}/pdb-audit.json`, {headers:headers()});
+    const r=await fetch(`${pdbBase()}/missing`, {headers:headers()});
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     const d=await r.json();
     const rawRows = Array.isArray(d) ? d : (d.items || d.projects || []);
