@@ -40,6 +40,9 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f4;color:#1c
 .bbl-meta{font-size:12px;color:#aaa;margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .bbl-meta a{color:#aaa;text-decoration:none}
 .bbl-meta a:hover{text-decoration:underline}
+.pdb-title{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.pdb-link{font-size:12px;color:#185fa5;text-decoration:none}
+.pdb-link:hover{text-decoration:underline}
 .filters{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
 .filter-btn{font-size:12px;padding:4px 12px;border:1px solid #d0cdc7;border-radius:10px;background:#fff;color:#888;cursor:pointer}
 .filter-btn.active{background:#1c1c1b;color:#fff;border-color:#1c1c1b}
@@ -53,7 +56,6 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f4;color:#1c
 .days-row{display:flex;align-items:center;gap:8px;margin-bottom:1rem}
 .days-row label{font-size:13px;color:#888}
 .days-row select{font-size:13px;padding:4px 8px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b}
-
 </style>
 </head>
 <body>
@@ -73,6 +75,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f4;color:#1c
     <button class="tab active" onclick="switchTab('issues',this)">Issues <span class="badge" id="issues-count">—</span></button>
     <button class="tab" onclick="switchTab('push',this)">Push Raporu <span class="badge" id="push-count">—</span></button>
     <button class="tab" onclick="switchTab('bbl',this)">BBL'ler <span class="badge" id="bbl-count">—</span></button>
+    <button class="tab" onclick="switchTab('pdb',this)">PDB Eksikler <span class="badge" id="pdb-count">—</span></button>
     <button class="tab" onclick="openBacklink()">Backlink <span class="badge">↗</span></button>
   </div>
 
@@ -114,21 +117,33 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f4;color:#1c
     <div id="bbl-content"><div class="loading">Yükleniyor...</div></div>
   </div>
 
+  <div id="tab-pdb" style="display:none">
+    <div class="filters" id="pdb-filters">
+      <button class="filter-btn active" onclick="filterPdb(null,this)">Tümü</button>
+      <div id="pdb-field-filter-btns"></div>
+    </div>
+    <div id="pdb-content"><div class="loading">Yükleniyor...</div></div>
+  </div>
 </div>
 
 <script>
-let bblData=[];
+let bblData = [];
+let pdbData = [];
 
 function base(){
-  return document.getElementById('baseurl').value.trim().replace(/\/$/,'')
+  return document.getElementById('baseurl').value.trim().replace(/\/$/,'');
+}
+
+function pdbBase(){
+  return `${base()}/pdb-missing-fields`;
 }
 
 function apiKey(){
-  return document.getElementById('apikey').value.trim()
+  return document.getElementById('apikey').value.trim();
 }
 
 function headers(){
-  return {'api-key': apiKey()}
+  return {'api-key': apiKey()};
 }
 
 function saveSettings(){
@@ -155,14 +170,14 @@ function bindSettings(){
 }
 
 function showError(msg){
-  const b=document.getElementById('error-box');
-  b.textContent=msg;
-  b.style.display='block';
-  setTimeout(()=>b.style.display='none',6000);
+  const b = document.getElementById('error-box');
+  b.textContent = msg;
+  b.style.display = 'block';
+  setTimeout(() => b.style.display = 'none', 6000);
 }
 
 function switchTab(name,btn){
-  ['issues','push','bbl'].forEach(t=>{
+  ['issues','push','bbl','pdb'].forEach(t=>{
     const el=document.getElementById('tab-'+t);
     if(el) el.style.display=t===name?'block':'none';
   });
@@ -183,11 +198,29 @@ function initials(name){
 }
 
 function tagClass(t){
-  if(t.includes('g/nxt'))return'gnxt';
-  if(t.includes('g/ltr'))return'gltr';
-  if(t.includes('g/bug'))return'gbug';
-  if(t.includes('g/wtng'))return'gwtng';
-  return'';
+  if(t.includes('g/nxt')) return 'gnxt';
+  if(t.includes('g/ltr')) return 'gltr';
+  if(t.includes('g/bug')) return 'gbug';
+  if(t.includes('g/wtng')) return 'gwtng';
+  return '';
+}
+
+function escapeHtml(value){
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function makeRepoUrl(repo){
+  if(!repo) return '';
+  const raw = String(repo).trim();
+  if(!raw) return '';
+  if(raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+  if(raw.includes('/')) return `https://github.com/${raw}`;
+  return '';
 }
 
 async function loadIssues(){
@@ -198,8 +231,8 @@ async function loadIssues(){
   el.innerHTML='<div class="loading">Yükleniyor...</div>';
 
   try{
-    const r=await fetch(`${base()}/issues.json?days=${days}`,{headers:headers()});
-    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    const r=await fetch(`${base()}/issues.json?days=${days}`, {headers:headers()});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
     const d=await r.json();
     renderIssues(d);
   }catch(e){
@@ -258,8 +291,8 @@ async function loadPush(){
   el.innerHTML='<div class="loading">Yükleniyor...</div>';
 
   try{
-    const r=await fetch(`${base()}/report.json?days=${days}`,{headers:headers()});
-    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    const r=await fetch(`${base()}/report.json?days=${days}`, {headers:headers()});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
     const d=await r.json();
     renderPush(d);
   }catch(e){
@@ -294,15 +327,13 @@ function renderPush(d){
 
 async function loadTags(){
   try{
-    const r=await fetch(`${base()}/tags.json`,{headers:headers()});
+    const r=await fetch(`${base()}/tags.json`, {headers:headers()});
     if(!r.ok) throw new Error();
     const d=await r.json();
     const gtd=d.gtd||[];
-    const labels=d.labels||{};
     const el=document.getElementById('tag-filter-btns');
     el.innerHTML=gtd.map(t=>`<button class="filter-btn" onclick="filterBbl('#${t}',this)">#${t}</button>`).join('');
   }catch(e){
-    // tags.json yoksa varsayılan
     document.getElementById('tag-filter-btns').innerHTML=
       `<button class="filter-btn" onclick="filterBbl('#g/nxt',this)">#g/nxt</button>
        <button class="filter-btn" onclick="filterBbl('#g/ltr',this)">#g/ltr</button>
@@ -318,8 +349,8 @@ async function loadBbl(){
   el.innerHTML='<div class="loading">Yükleniyor...</div>';
 
   try{
-    const r=await fetch(`${base()}/bbl.json`,{headers:headers()});
-    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    const r=await fetch(`${base()}/bbl.json`, {headers:headers()});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
     const d=await r.json();
     bblData=d.bbls||[];
     document.getElementById('bbl-count').textContent=bblData.length;
@@ -361,13 +392,93 @@ function renderBbl(bbls){
   }).join('');
 }
 
-function loadAll(){loadTags();loadIssues();loadPush();loadBbl();}
+async function loadPdb(){
+  saveSettings();
+
+  const el=document.getElementById('pdb-content');
+  el.innerHTML='<div class="loading">Yükleniyor...</div>';
+
+  try{
+    const r=await fetch(`${pdbBase()}/pdb-audit.json`, {headers:headers()});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d=await r.json();
+    const rawRows = Array.isArray(d) ? d : (d.projects || []);
+    pdbData = rawRows
+      .map(p => ({...p, missing_fields: Array.isArray(p.missing_fields) ? p.missing_fields : []}))
+      .sort((a,b)=>b.missing_fields.length-a.missing_fields.length);
+    document.getElementById('pdb-count').textContent=pdbData.length;
+    await loadPdbFieldFilters();
+    renderPdb(pdbData);
+  }catch(e){
+    const msg = e && e.message === 'HTTP 403'
+      ? 'PDB Eksikler için api-key gerekli (403).'
+      : 'PDB Eksikler yüklenemedi: ' + e.message;
+    showError(msg);
+    el.innerHTML='<div class="empty">Yüklenemedi</div>';
+  }
+}
+
+async function loadPdbFieldFilters(){
+  try{
+    const r=await fetch(`${pdbBase()}/facets?facet=field`, {headers:headers()});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d=await r.json();
+    const entries=Object.entries(d||{}).sort((a,b)=>b[1]-a[1]);
+    const el=document.getElementById('pdb-field-filter-btns');
+    el.innerHTML=entries.map(([field,count]) =>
+      `<button class="filter-btn" onclick="filterPdb('${field}',this)">${field} (${count})</button>`
+    ).join('');
+  }catch(_e){
+    document.getElementById('pdb-field-filter-btns').innerHTML='';
+  }
+}
+
+function filterPdb(field,btn){
+  document.querySelectorAll('#pdb-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const rows=field?pdbData.filter(p=>(p.missing_fields||[]).includes(field)):pdbData;
+  renderPdb(rows);
+}
+
+function renderPdb(rows){
+  const el=document.getElementById('pdb-content');
+
+  if(!rows.length){
+    el.innerHTML='<div class="empty">Sonuç yok</div>';
+    return;
+  }
+
+  el.innerHTML=rows.map(p=>{
+    const missingFields = p.missing_fields || [];
+    const tags=missingFields.map(f=>`<span class="tag gbug">${escapeHtml(f)}</span>`).join('');
+    const repoUrl = makeRepoUrl(p.github_repo);
+    const projectName = escapeHtml(p.project_name || '—');
+    const projectId = escapeHtml(p.project_id || '—');
+    const owner = p.dev_owner ? escapeHtml(p.dev_owner) : '';
+    const missingCount = missingFields.length;
+    return `<div class="card">
+      <div class="person-header pdb-title">
+        <div class="avatar">${initials((p.project_name||p.project_id||'?').toString())}</div>
+        <div class="person-name">${projectName}</div>
+        <span class="tag gbug">${missingCount} eksik alan</span>
+      </div>
+      <div class="bbl-meta">
+        <span class="repo-chip">ID: ${projectId}</span>
+        ${owner?`<span class="repo-chip">Owner: ${owner}</span>`:''}
+        ${repoUrl?`<a class="pdb-link" href="${escapeHtml(repoUrl)}" target="_blank"><i class="ti ti-brand-github"></i> repo</a>`:''}
+      </div>
+      <div>${tags||'<span class="tag">Eksik alan yok</span>'}</div>
+    </div>`;
+  }).join('');
+}
+
+function loadAll(){loadTags();loadIssues();loadPush();loadBbl();loadPdb();}
+
 window.addEventListener('DOMContentLoaded',()=>{
   loadSettings();
   bindSettings();
   loadAll();
 });
-
 </script>
 </body>
 </html>
