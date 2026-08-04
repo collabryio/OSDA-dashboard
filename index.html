@@ -402,7 +402,7 @@ async function loadPdb(){
     const r=await fetch(`${pdbBase()}/pdb-audit.json`, {headers:headers()});
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     const d=await r.json();
-    const rawRows = Array.isArray(d) ? d : (d.projects || []);
+    const rawRows = Array.isArray(d) ? d : (d.items || d.projects || []);
     pdbData = rawRows
       .map(p => ({...p, missing_fields: Array.isArray(p.missing_fields) ? p.missing_fields : []}))
       .sort((a,b)=>b.missing_fields.length-a.missing_fields.length);
@@ -451,10 +451,11 @@ function renderPdb(rows){
   el.innerHTML=rows.map(p=>{
     const missingFields = p.missing_fields || [];
     const tags=missingFields.map(f=>`<span class="tag gbug">${escapeHtml(f)}</span>`).join('');
-    const repoUrl = makeRepoUrl(p.github_repo);
+    const details = p.filled_fields || {};
+    const repoUrl = makeRepoUrl(p.github_repo || details.github_repo);
     const projectName = escapeHtml(p.project_name || '—');
     const projectId = escapeHtml(p.project_id || '—');
-    const owner = p.dev_owner ? escapeHtml(p.dev_owner) : '';
+    const owner = (p.dev_owner || details.dev_owner) ? escapeHtml(p.dev_owner || details.dev_owner) : '';
     const missingCount = missingFields.length;
     return `<div class="card">
       <div class="person-header pdb-title">
