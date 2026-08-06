@@ -77,6 +77,9 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f4;color:#1c
     <button class="tab" onclick="switchTab('bbl',this)">BBL'ler <span class="badge" id="bbl-count">—</span></button>
     <button class="tab" onclick="switchTab('pdb',this)">PDB Eksikler <span class="badge" id="pdb-count">—</span></button>
     <button class="tab" onclick="openBacklink()">Backlink <span class="badge">↗</span></button>
+    <!-- ==== OSDA STANDARTLAR SEKMESI — BASLANGIC ==== -->
+    <button class="tab" onclick="switchTab('stnd',this)">Standartlar <span class="badge" id="stnd-count">—</span></button>
+    <!-- ==== OSDA STANDARTLAR SEKMESI — SON ==== -->
   </div>
 
   <div id="tab-issues">
@@ -124,6 +127,20 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f4;color:#1c
     </div>
     <div id="pdb-content"><div class="loading">Yükleniyor...</div></div>
   </div>
+
+  <!-- ==== OSDA STANDARTLAR SEKMESI — BASLANGIC ==== -->
+  <div id="tab-stnd" style="display:none">
+  <div class="days-row">
+    <input type="text" id="stnd-q" placeholder="Yapacağın işi yaz: &quot;github reposuna readme yazacağım&quot;…"
+           style="flex:1;min-width:240px;font-size:13px;padding:6px 10px;border:1px solid #d0cdc7;border-radius:8px;background:#fff;color:#1c1c1b"
+           onkeydown="if(event.key==='Enter')stndCheck()"/>
+    <button class="filter-btn" onclick="stndCheck()">Standart var mı?</button>
+    <button class="filter-btn" onclick="stndAll()">Tümü</button>
+  </div>
+  <div class="filters" id="stnd-filters"></div>
+  <div id="stnd-content"><div class="empty">Bir iş tanımı yaz ve "Standart var mı?" de — ya da "Tümü" ile listeyi gör.</div></div>
+</div>
+  <!-- ==== OSDA STANDARTLAR SEKMESI — SON ==== -->
 </div>
 
 <script>
@@ -481,5 +498,119 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadAll();
 });
 </script>
+<!-- ==== OSDA STANDARTLAR SEKMESI — BASLANGIC ==== -->
+<script>
+(function(){
+  // switchTab'ı Standartlar sekmesini de kapsayacak şekilde genişletir.
+  // Sekme listesi sabit yazılmaz, DOM'dan okunur: dashboard'a ileride yeni bir
+  // sekme eklendiğinde bu blok geride kalıp o sekmeyi görünmez yapmasın.
+  window.switchTab=function(name,btn){
+    document.querySelectorAll('[id^="tab-"]').forEach(function(el){
+      el.style.display=(el.id==='tab-'+name)?'block':'none';
+    });
+    document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('active');});
+    if(btn) btn.classList.add('active');
+  };
+
+  var esc=function(s){return (s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});};
+  var hdr=function(){return {'api-key':(document.getElementById('apikey').value||'').trim()};};
+  // Standartlar API'si osda-api ile aynı adres altında: /stnd
+  var stndBase=function(){return (document.getElementById('baseurl').value||'').trim().replace(/\/$/,'')+'/stnd';};
+
+  // Skor eşiği backend ile aynı (search.WEAK_SCORE). Altı "zayıf eşleşme":
+  // kelime olarak tutuyor ama "bu konuda standardımız var" demek değil.
+  var WEAK=9.0;
+
+  function card(b){
+    var tags=(b.tags||[]).map(function(t){return '<span class="tag">#'+esc(t)+'</span>';}).join(' ');
+    var body=(b.content||[]).slice(0,2).map(function(l){
+      return '<div style="color:#666;font-size:12px;margin-top:2px">'+esc(l)+'</div>';}).join('');
+    var src=b.source_url
+      ? '<a href="'+esc(b.source_url)+'" target="_blank">kaynak</a>'
+      : '<span>'+esc(b.graph)+'/'+esc(b.file)+':'+b.line+'</span>';
+    var score=(b.score!==undefined)?'<span class="repo-chip">'+b.score+'</span>':'';
+    return '<div class="card">'+
+      '<div class="bbl-title">'+esc(b.title)+'</div>'+body+
+      '<div class="bbl-meta">'+score+' '+tags+' '+src+
+      ' <span style="color:#aaa">'+esc(b.refid)+'</span></div></div>';
+  }
+
+  function render(items,note){
+    var el=document.getElementById('stnd-content');
+    if(!items.length){
+      el.innerHTML='<div class="empty">'+(note||'Sonuç yok')+'</div>'; return;
+    }
+    var strong=items.filter(function(b){return b.score===undefined||b.score>=WEAK;});
+    var weak=items.filter(function(b){return b.score!==undefined&&b.score<WEAK;});
+    var html='';
+    if(strong.length){
+      if(note) html+='<div class="group-label">'+esc(note)+' — '+strong.length+' standart</div>';
+      html+=strong.map(card).join('');
+    }
+    if(weak.length){
+      html+='<div class="group-label">zayıf eşleşme ('+weak.length+') — '+
+            'muhtemelen bu konuda standardımız yok</div>'+weak.map(card).join('');
+    }
+    el.innerHTML=html;
+  }
+
+  function load(url,note){
+    var el=document.getElementById('stnd-content');
+    el.innerHTML='<div class="loading">Yükleniyor...</div>';
+    return fetch(url,{headers:hdr()}).then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }).then(function(d){
+      var items=d.items||[];
+      document.getElementById('stnd-count').textContent=items.length;
+      render(items,note);
+    }).catch(function(e){
+      el.innerHTML='<div class="empty">Yüklenemedi: '+esc(e.message)+'</div>';
+    });
+  }
+
+  window.stndCheck=function(){
+    var q=(document.getElementById('stnd-q').value||'').trim();
+    if(!q){ return window.stndAll(); }
+    return load(stndBase()+'/check?limit=15&context='+encodeURIComponent(q), q);
+  };
+
+  window.stndAll=function(){
+    document.querySelectorAll('#stnd-filters .filter-btn').forEach(function(b){b.classList.remove('active');});
+    return load(stndBase()+'/stnd.json','Tüm standartlar');
+  };
+
+  window.stndByDomain=function(domain,btn){
+    document.querySelectorAll('#stnd-filters .filter-btn').forEach(function(b){b.classList.remove('active');});
+    if(btn) btn.classList.add('active');
+    return load(stndBase()+'/stnd.json?domain='+encodeURIComponent(domain),'#'+domain);
+  };
+
+  // Konu alanı filtreleri, veritabanındaki gerçek dağılımdan üretilir —
+  // sabit liste tutulursa yeni bir alan eklendiğinde dashboard geride kalır.
+  window.stndLoadFacets=function(){
+    var el=document.getElementById('stnd-filters');
+    if(!el||el.dataset.loaded) return;
+    fetch(stndBase()+'/facets?facet=domain',{headers:hdr()})
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(d){
+        if(!d) return;
+        var top=Object.keys(d.values||{}).slice(0,10);
+        el.innerHTML=top.map(function(k){
+          return '<button class="filter-btn" onclick="stndByDomain(\''+k+'\',this)">'+
+                 esc(k)+' <span class="badge">'+d.values[k]+'</span></button>';
+        }).join('');
+        el.dataset.loaded='1';
+      }).catch(function(){});
+  };
+
+  // Sekmeye ilk geçişte facet'leri yükle (açılışta gereksiz istek atma).
+  document.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest?e.target.closest('.tab'):null;
+    if(b&&/Standartlar/.test(b.textContent)) window.stndLoadFacets();
+  });
+})();
+</script>
+<!-- ==== OSDA STANDARTLAR SEKMESI — SON ==== -->
 </body>
 </html>
